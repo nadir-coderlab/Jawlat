@@ -3,10 +3,12 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>داشبورد الجولات الميدانية | الإدارة التنفيذية للخدمات الصحية المساندة</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
   :root {
     --navy: #0a1628;
@@ -22,16 +24,15 @@
     --red-glow: rgba(255,107,107,0.25);
     --blue: #4fa3e3;
     --blue-dim: rgba(79,163,227,0.13);
-    --purple: #a78bfa;
     --white: #e8edf5;
-    --muted: #7a8ba0;
-    --muted2: #5a6b80;
-    --glass: rgba(255,255,255,0.04);
-    --glass2: rgba(255,255,255,0.07);
-    --glass-border: rgba(255,255,255,0.08);
-    --glass-border-hover: rgba(255,255,255,0.18);
+    --muted: #98a8bd;
+    --muted2: #6b7d93;
+    --glass: rgba(255,255,255,0.06);
+    --glass2: rgba(255,255,255,0.1);
+    --glass-border: rgba(255,255,255,0.12);
+    --glass-border-hover: rgba(255,255,255,0.22);
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
   html { scroll-behavior: smooth; }
   body {
     background: var(--navy);
@@ -39,14 +40,14 @@
     color: var(--white);
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
   body::before {
     content: '';
     position: fixed; inset: 0;
     background:
       radial-gradient(ellipse 60% 40% at 20% 10%, rgba(0,184,148,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 60% at 80% 80%, rgba(240,180,41,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(15,32,68,0.9) 0%, transparent 100%);
+      radial-gradient(ellipse 40% 60% at 80% 80%, rgba(240,180,41,0.06) 0%, transparent 60%);
     pointer-events: none; z-index: 0;
   }
 
@@ -55,48 +56,61 @@
 /* ========== Header ========== */
 .header {
 display: flex; align-items: center; justify-content: space-between;
-margin-bottom: 28px; padding-bottom: 20px;
+margin-bottom: 24px; padding-bottom: 18px;
 border-bottom: 1px solid var(–glass-border);
 flex-wrap: wrap; gap: 16px;
 }
-.header-right { display: flex; flex-direction: column; gap: 4px; }
+.header-right { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .header-tag {
-font-size: 11px; font-weight: 600; letter-spacing: 3px;
+font-size: 11px; font-weight: 600; letter-spacing: 2px;
 color: var(–emerald); text-transform: uppercase;
 }
-.header-title { font-size: 28px; font-weight: 900; color: var(–white); line-height: 1.1; }
+.header-title { font-size: 26px; font-weight: 900; color: var(–white); line-height: 1.1; }
 .header-sub { font-size: 12px; color: var(–muted); font-family: ‘Tajawal’, sans-serif; }
 
-.header-actions { display: flex; align-items: center; gap: 10px; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .btn {
-background: var(–glass2); border: 1px solid var(–glass-border);
-color: var(–white); padding: 10px 18px; border-radius: 10px;
-font-family: ‘Cairo’; font-size: 12px; font-weight: 600;
+background: var(–glass2);
+border: 1px solid var(–glass-border);
+color: var(–white);
+padding: 10px 18px; border-radius: 10px;
+font-family: ‘Cairo’; font-size: 12px; font-weight: 700;
 cursor: pointer; transition: all 0.2s;
 display: inline-flex; align-items: center; gap: 8px;
+white-space: nowrap;
 }
-.btn:hover { background: var(–glass); border-color: var(–glass-border-hover); transform: translateY(-1px); }
+.btn:hover { background: rgba(255,255,255,0.14); border-color: var(–glass-border-hover); transform: translateY(-1px); }
 .btn-primary {
 background: linear-gradient(135deg, var(–emerald), #00d2b4);
 border-color: var(–emerald);
 box-shadow: 0 4px 20px var(–emerald-glow);
+color: #062720;
 }
 .btn-primary:hover { box-shadow: 0 6px 24px var(–emerald-glow); }
-.btn-danger:hover { border-color: var(–red); color: var(–red); }
+.btn-outline { background: transparent; }
 
-/* Round selector */
 .round-selector {
-background: var(–glass); border: 1px solid var(–glass-border);
-border-radius: 10px; padding: 8px 14px;
-font-family: ‘Cairo’; font-size: 12px; color: var(–white);
-min-width: 200px; cursor: pointer;
+background: var(–glass);
+border: 1px solid var(–glass-border);
+border-radius: 10px; padding: 10px 14px;
+font-family: ‘Cairo’; font-size: 12px; font-weight: 600;
+color: var(–white);
+min-width: 220px; cursor: pointer;
+appearance: none;
+background-image: linear-gradient(45deg, transparent 50%, var(–muted) 50%), linear-gradient(-45deg, transparent 50%, var(–muted) 50%);
+background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+background-size: 5px 5px;
+background-repeat: no-repeat;
+padding-right: 14px;
+padding-left: 30px;
 }
 .round-selector option { background: var(–navy2); color: var(–white); }
 
 /* ========== KPI Row ========== */
-.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
 .kpi-card {
-background: var(–glass); border: 1px solid var(–glass-border);
+background: var(–glass);
+border: 1px solid var(–glass-border);
 border-radius: 16px; padding: 20px 18px;
 position: relative; overflow: hidden;
 transition: transform 0.2s, border-color 0.2s;
@@ -108,264 +122,304 @@ content: ‘’;
 position: absolute; top: 0; right: 0;
 width: 70px; height: 70px;
 border-radius: 0 16px 0 70px;
-opacity: 0.14;
+opacity: 0.18;
 }
 .kpi-card.green::before { background: var(–emerald); }
 .kpi-card.gold::before { background: var(–gold); }
 .kpi-card.red::before { background: var(–red); }
 .kpi-card.blue::before { background: var(–blue); }
-.kpi-label { font-size: 11px; color: var(–muted); font-weight: 600; letter-spacing: 1px; margin-bottom: 10px; }
-.kpi-value { font-size: 42px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.kpi-label { font-size: 11px; color: var(–muted); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 10px; }
+.kpi-value { font-size: 40px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
 .kpi-card.green .kpi-value { color: var(–emerald); }
 .kpi-card.gold .kpi-value { color: var(–gold); }
 .kpi-card.red .kpi-value { color: var(–red); }
 .kpi-card.blue .kpi-value { color: var(–blue); }
 .kpi-desc { font-size: 11px; color: var(–muted); }
-.kpi-trend { font-size: 10px; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
-.trend-up { color: var(–emerald); }
-.trend-down { color: var(–red); }
-.trend-same { color: var(–muted); }
+
+/* ========== Alerts ========== */
+.alerts-bar {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+gap: 10px; margin-bottom: 22px;
+}
+.alert {
+padding: 12px 14px;
+border-radius: 12px;
+border-right: 3px solid;
+display: flex;
+align-items: center;
+gap: 10px;
+font-size: 12px;
+}
+.alert-critical { background: var(–red-dim); border-color: var(–red); color: var(–red); }
+.alert-warning { background: var(–gold-dim); border-color: var(–gold); color: var(–gold); }
+.alert-success { background: var(–emerald-dim); border-color: var(–emerald); color: var(–emerald); }
+.alert-title { font-weight: 800; font-size: 12px; }
+.alert-body { font-size: 11px; color: var(–white); margin-top: 2px; opacity: 0.9; }
+.alert-num { font-size: 22px; font-weight: 900; min-width: 34px; text-align: center; }
 
 /* ========== Layout ========== */
-.main-grid { display: grid; grid-template-columns: 1fr 1fr 320px; gap: 16px; margin-bottom: 16px; }
-@media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr 1fr; } .main-grid > :nth-child(3) { grid-column: 1 / -1; } }
+.section-title-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0 12px; padding: 0 4px; }
+.section-title { font-size: 14px; font-weight: 800; color: var(–white); letter-spacing: 0.5px; }
+.section-sub { font-size: 11px; color: var(–muted); }
+
+.main-grid { display: grid; grid-template-columns: 1fr 1fr 340px; gap: 16px; margin-bottom: 16px; }
 
 .panel {
-background: var(–glass); border: 1px solid var(–glass-border);
+background: var(–glass);
+border: 1px solid var(–glass-border);
 border-radius: 18px; padding: 20px;
 animation: fadeUp 0.6s ease both;
 }
 .panel-title {
-font-size: 13px; font-weight: 700; color: var(–muted);
-letter-spacing: 1.5px; margin-bottom: 16px;
+font-size: 13px; font-weight: 700; color: var(–white);
+letter-spacing: 0.5px; margin-bottom: 16px;
 display: flex; align-items: center; justify-content: space-between;
+gap: 8px;
 }
-.panel-title .left { display: flex; align-items: center; gap: 8px; }
-.panel-title .dot { width: 6px; height: 6px; border-radius: 50%; }
+.panel-title .left { display: flex; align-items: center; gap: 10px; }
+.panel-title .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot-green { background: var(–emerald); }
 .dot-gold { background: var(–gold); }
 .dot-red { background: var(–red); }
 .dot-blue { background: var(–blue); }
-.panel-hint { font-size: 10px; color: var(–muted2); font-weight: 400; letter-spacing: 0; }
+.panel-hint { font-size: 10px; color: var(–muted2); font-weight: 500; }
 
 /* Dept bars */
 .dept-item { margin-bottom: 14px; }
-.dept-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.dept-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.pt-badge { font-size: 9px; background: var(–gold-dim); color: var(–gold); padding: 1px 6px; border-radius: 10px; border: 1px solid var(–gold); }
+.dept-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px; }
+.dept-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.service-badge {
+font-size: 9px;
+background: var(–gold-dim); color: var(–gold);
+padding: 2px 8px; border-radius: 10px;
+border: 1px solid var(–gold);
+font-weight: 600;
+}
 .dept-stats { display: flex; align-items: center; gap: 8px; }
-.dept-pct { font-size: 14px; font-weight: 800; }
+.dept-pct { font-size: 14px; font-weight: 900; }
 .dept-count { font-size: 10px; color: var(–muted); }
-.bar-track { height: 7px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; position: relative; }
+.bar-track { height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; position: relative; }
 .bar-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(.4,0,.2,1); }
 .bar-good { background: linear-gradient(90deg, var(–emerald), #00d2b4); }
 .bar-warn { background: linear-gradient(90deg, var(–gold), #ffcc00); }
 .bar-bad { background: linear-gradient(90deg, var(–red), #ff8e53); }
-.bar-target { position: absolute; top: -2px; bottom: -2px; width: 2px; background: rgba(255,255,255,0.5); }
+.bar-target { position: absolute; top: -3px; bottom: -3px; width: 2px; background: rgba(255,255,255,0.6); }
+.bar-target::after {
+content: attr(data-label); position: absolute; top: -14px; right: -18px;
+font-size: 9px; color: var(–muted); white-space: nowrap;
+}
 
 /* Donut */
-.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 6px 0; }
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .donut-svg { filter: drop-shadow(0 0 20px var(–emerald-glow)); }
 .donut-legend { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.legend-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); }
-.legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: 8px; }
-.legend-label { font-size: 12px; color: var(–muted); flex: 1; }
-.legend-val { font-size: 13px; font-weight: 800; }
+.legend-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.03); }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; margin-left: 8px; }
+.legend-label { font-size: 12px; color: var(–white); flex: 1; }
+.legend-val { font-size: 14px; font-weight: 900; }
 .gap-box {
-margin-top: 10px; padding: 12px; background: var(–gold-dim); border-radius: 10px; border: 1px solid var(–gold);
+margin-top: 10px; padding: 12px 14px; background: var(–gold-dim); border-radius: 10px; border: 1px solid var(–gold);
 }
-.gap-label { font-size: 10px; color: var(–gold); font-weight: 700; margin-bottom: 4px; }
-.gap-val { font-size: 20px; font-weight: 900; color: var(–gold); }
-.gap-desc { font-size: 10px; color: var(–muted); margin-top: 2px; }
+.gap-label { font-size: 10px; color: var(–gold); font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px; }
+.gap-val { font-size: 22px; font-weight: 900; color: var(–gold); }
+.gap-desc { font-size: 10px; color: var(–muted); margin-top: 3px; }
 
 /* Rankings */
-.rank-list { display: flex; flex-direction: column; gap: 8px; }
+.rank-list { display: flex; flex-direction: column; gap: 6px; }
 .rank-item {
 display: flex; align-items: center; gap: 10px;
 padding: 10px 12px; border-radius: 10px;
-background: rgba(255,255,255,0.03); border: 1px solid var(–glass-border);
+background: rgba(255,255,255,0.04); border: 1px solid var(–glass-border);
 transition: all 0.2s; cursor: pointer;
 }
-.rank-item:hover { background: rgba(255,255,255,0.06); border-color: var(–glass-border-hover); }
-.rank-num { font-size: 16px; font-weight: 900; color: var(–muted); min-width: 24px; }
+.rank-item:hover { background: rgba(255,255,255,0.09); border-color: var(–glass-border-hover); }
+.rank-num { font-size: 14px; font-weight: 900; color: var(–muted); min-width: 26px; }
 .rank-num.top { color: var(–gold); }
 .rank-num.low { color: var(–red); }
-.rank-name { flex: 1; font-size: 13px; font-weight: 600; }
+.rank-name { flex: 1; font-size: 13px; font-weight: 700; }
 .rank-badge {
-font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
 white-space: nowrap;
 }
 .badge-good { background: var(–emerald-dim); color: var(–emerald); border: 1px solid var(–emerald); }
 .badge-warn { background: var(–gold-dim); color: var(–gold); border: 1px solid var(–gold); }
 .badge-bad { background: var(–red-dim); color: var(–red); border: 1px solid var(–red); }
 
-.rank-section-title { font-size: 11px; font-weight: 700; margin-bottom: 10px; margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+.rank-section-title { font-size: 11px; font-weight: 800; margin-bottom: 8px; margin-top: 14px; letter-spacing: 1px; }
 .rank-section-title:first-child { margin-top: 0; }
 .rank-section-title.up { color: var(–emerald); }
 .rank-section-title.down { color: var(–red); }
 
 /* Heatmap */
-.heatmap-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
-.heatmap-wrap::-webkit-scrollbar { height: 6px; }
-.heatmap-wrap::-webkit-scrollbar-track { background: transparent; }
-.heatmap-wrap::-webkit-scrollbar-thumb { background: var(–glass-border); border-radius: 3px; }
-.heatmap { width: 100%; border-collapse: separate; border-spacing: 3px; direction: rtl; min-width: 700px; }
-.heatmap th { font-size: 10px; color: var(–muted); font-weight: 600; padding: 4px 6px; text-align: center; }
-.heatmap th.center-col { text-align: right; min-width: 120px; }
+.heatmap-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px 4px; }
+.heatmap-wrap::-webkit-scrollbar { height: 8px; }
+.heatmap-wrap::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 4px; }
+.heatmap-wrap::-webkit-scrollbar-thumb { background: var(–glass-border); border-radius: 4px; }
+.heatmap { width: 100%; border-collapse: separate; border-spacing: 3px; direction: rtl; min-width: 720px; }
+.heatmap th {
+font-size: 10px; color: var(–muted); font-weight: 700;
+padding: 6px 6px; text-align: center; letter-spacing: 0.3px;
+}
+.heatmap th.center-col { text-align: right; min-width: 130px; padding-right: 10px; }
 .heatmap td {
-height: 34px; border-radius: 6px;
-text-align: center; font-size: 11px; font-weight: 700;
+height: 36px; border-radius: 6px;
+text-align: center; font-size: 11px; font-weight: 800;
 cursor: default; transition: transform 0.15s;
 position: relative;
 }
-.heatmap td:hover { transform: scale(1.1); z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.heatmap td:hover { transform: scale(1.12); z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 .heatmap td.name-cell {
 text-align: right; padding: 4px 10px; background: transparent;
-font-size: 12px; font-weight: 600; min-width: 120px;
+font-size: 12px; font-weight: 700; min-width: 130px; color: var(–white);
 }
 .heatmap td.total-cell { font-weight: 900; font-size: 12px; }
-.heatmap td.na-cell { background: rgba(120,120,120,0.15); color: var(–muted); font-style: italic; font-size: 10px; }
+.heatmap td.na-cell { background: rgba(120,130,145,0.18); color: var(–muted); font-weight: 500; font-size: 10px; font-style: italic; }
 
-/* Heatmap cell colors by percentage */
-.hm-good1 { background: rgba(0,184,148,0.8); color: #fff; }
-.hm-good2 { background: rgba(0,184,148,0.55); color: #fff; }
-.hm-good3 { background: rgba(0,184,148,0.3); color: var(–emerald); }
-.hm-warn { background: rgba(240,180,41,0.35); color: var(–gold); }
-.hm-bad1 { background: rgba(255,107,107,0.3); color: var(–red); }
-.hm-bad2 { background: rgba(255,107,107,0.55); color: #fff; }
-.hm-bad3 { background: rgba(255,107,107,0.8); color: #fff; }
+.hm-good1 { background: rgba(0,184,148,0.85); color: #fff; }
+.hm-good2 { background: rgba(0,184,148,0.6); color: #fff; }
+.hm-good3 { background: rgba(0,184,148,0.35); color: var(–emerald); }
+.hm-warn { background: rgba(240,180,41,0.4); color: var(–gold); }
+.hm-bad1 { background: rgba(255,107,107,0.35); color: var(–red); }
+.hm-bad2 { background: rgba(255,107,107,0.6); color: #fff; }
+.hm-bad3 { background: rgba(255,107,107,0.85); color: #fff; }
 
-/* Legend */
-.hm-legend { display: flex; gap: 12px; margin-top: 14px; align-items: center; flex-wrap: wrap; font-size: 10px; color: var(–muted); }
+.hm-legend { display: flex; gap: 14px; margin-top: 14px; align-items: center; flex-wrap: wrap; font-size: 10px; color: var(–muted); }
 .hm-legend-item { display: inline-flex; align-items: center; gap: 6px; }
 .hm-legend-box { width: 16px; height: 16px; border-radius: 4px; }
 
 /* Tabs */
 .tabs {
-display: flex; gap: 4px; margin-bottom: 20px;
-background: var(–glass); border: 1px solid var(–glass-border);
-border-radius: 12px; padding: 4px;
+display: flex; gap: 4px; margin-bottom: 22px;
+background: var(–glass);
+border: 1px solid var(–glass-border);
+border-radius: 12px; padding: 5px;
 width: fit-content;
+overflow-x: auto;
+max-width: 100%;
 }
 .tab {
-padding: 8px 18px; border-radius: 8px;
-font-family: ‘Cairo’; font-size: 12px; font-weight: 600;
-color: var(–muted); cursor: pointer; transition: all 0.2s;
+padding: 9px 18px; border-radius: 8px;
+font-family: ‘Cairo’; font-size: 12px; font-weight: 700;
+color: var(–white);
+cursor: pointer; transition: all 0.2s;
 background: transparent; border: none;
+white-space: nowrap;
+opacity: 0.65;
 }
-.tab:hover { color: var(–white); }
-.tab.active { background: var(–emerald); color: #fff; }
+.tab:hover { opacity: 1; background: rgba(255,255,255,0.06); }
+.tab.active { background: var(–emerald); color: #062720; opacity: 1; }
 
-/* Tab content */
 .tab-content { display: none; }
 .tab-content.active { display: block; animation: fadeUp 0.3s ease; }
 
-/* Comparison */
-.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.compare-side { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(–glass-border); }
-.compare-title { font-size: 12px; color: var(–muted); margin-bottom: 10px; }
-.compare-val { font-size: 28px; font-weight: 900; }
-.delta-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 6px; }
+/* Compare */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.compare-side { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid var(–glass-border); }
+.compare-title { font-size: 12px; color: var(–muted); margin-bottom: 10px; font-weight: 600; }
+.compare-val { font-size: 30px; font-weight: 900; }
+.delta-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; margin-top: 8px; }
+.trend-up { background: var(–emerald-dim); color: var(–emerald); border: 1px solid var(–emerald); }
+.trend-down { background: var(–red-dim); color: var(–red); border: 1px solid var(–red); }
+.trend-same { background: rgba(120,130,145,0.2); color: var(–muted); border: 1px solid var(–muted); }
 
-/* Items detail panel */
-.items-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+/* Items detail */
+.items-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
 .item-card {
-background: rgba(255,255,255,0.03); border: 1px solid var(–glass-border);
-border-radius: 10px; padding: 12px;
+background: rgba(255,255,255,0.04); border: 1px solid var(–glass-border);
+border-radius: 12px; padding: 14px;
 }
-.item-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(–white); }
-.item-stats { display: flex; gap: 8px; font-size: 10px; }
-.item-pill { padding: 2px 8px; border-radius: 10px; }
+.item-title { font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(–white); line-height: 1.4; }
+.item-stats { display: flex; gap: 6px; font-size: 10px; flex-wrap: wrap; }
+.item-pill { padding: 3px 9px; border-radius: 10px; font-weight: 700; }
 .pill-g { background: var(–emerald-dim); color: var(–emerald); }
 .pill-r { background: var(–red-dim); color: var(–red); }
-.pill-n { background: rgba(120,120,120,0.2); color: var(–muted); }
+.pill-n { background: rgba(120,130,145,0.22); color: var(–muted); }
 
-/* Filter bar */
 .filter-bar {
-display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
 }
 .filter-chip {
-padding: 6px 14px; border-radius: 20px;
+padding: 7px 14px; border-radius: 20px;
 background: var(–glass); border: 1px solid var(–glass-border);
-font-size: 11px; font-weight: 600; color: var(–muted);
+font-size: 11px; font-weight: 700; color: var(–white);
 cursor: pointer; transition: all 0.2s; font-family: ‘Cairo’;
+opacity: 0.7;
 }
-.filter-chip:hover { color: var(–white); }
-.filter-chip.active { background: var(–emerald); color: #fff; border-color: var(–emerald); }
+.filter-chip:hover { opacity: 1; }
+.filter-chip.active { background: var(–emerald); color: #062720; border-color: var(–emerald); opacity: 1; }
 
-/* Upload modal */
+/* Modal */
 .modal-backdrop {
-position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+position: fixed; inset: 0; background: rgba(0,0,0,0.75);
 z-index: 100; display: none; align-items: center; justify-content: center;
-backdrop-filter: blur(6px);
+backdrop-filter: blur(6px); padding: 20px;
 }
 .modal-backdrop.active { display: flex; }
 .modal {
 background: var(–navy2); border: 1px solid var(–glass-border-hover);
-border-radius: 20px; padding: 32px; max-width: 520px; width: 92%;
+border-radius: 20px; padding: 28px; max-width: 540px; width: 100%;
 box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+max-height: 90vh; overflow-y: auto;
 }
 .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
-.modal-sub { font-size: 12px; color: var(–muted); margin-bottom: 20px; }
+.modal-sub { font-size: 12px; color: var(–muted); margin-bottom: 20px; line-height: 1.6; }
 
 .upload-area {
 border: 2px dashed var(–glass-border-hover); border-radius: 12px;
 padding: 30px 20px; text-align: center; cursor: pointer;
 transition: all 0.2s; margin-bottom: 16px;
-background: rgba(255,255,255,0.02);
+background: rgba(255,255,255,0.03);
 }
 .upload-area:hover, .upload-area.drag-over {
 border-color: var(–emerald); background: var(–emerald-dim);
 }
-.upload-icon { font-size: 32px; margin-bottom: 8px; }
-.upload-text { font-size: 13px; color: var(–white); margin-bottom: 4px; }
+.upload-icon { font-size: 28px; font-weight: 900; color: var(–emerald); margin-bottom: 8px; }
+.upload-text { font-size: 13px; color: var(–white); margin-bottom: 4px; font-weight: 700; }
 .upload-sub { font-size: 11px; color: var(–muted); }
 
 .input-field {
-width: 100%; padding: 10px 14px; border-radius: 10px;
-background: rgba(255,255,255,0.04); border: 1px solid var(–glass-border);
+width: 100%; padding: 11px 14px; border-radius: 10px;
+background: rgba(255,255,255,0.05); border: 1px solid var(–glass-border);
 color: var(–white); font-family: ‘Cairo’; font-size: 13px;
-margin-bottom: 12px;
+margin-bottom: 14px;
 }
 .input-field:focus { outline: none; border-color: var(–emerald); }
-.input-label { font-size: 11px; color: var(–muted); margin-bottom: 4px; display: block; }
+.input-label { font-size: 11px; color: var(–muted); margin-bottom: 5px; display: block; font-weight: 600; }
 
-.modal-actions { display: flex; gap: 10px; justify-content: flex-start; margin-top: 12px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-start; margin-top: 12px; flex-wrap: wrap; }
 
-/* Archive list */
 .archive-item {
 display: flex; align-items: center; justify-content: space-between;
 padding: 12px 14px; border-radius: 10px; margin-bottom: 8px;
-background: rgba(255,255,255,0.03); border: 1px solid var(–glass-border);
-transition: all 0.2s;
+background: rgba(255,255,255,0.04); border: 1px solid var(–glass-border);
+transition: all 0.2s; gap: 10px; flex-wrap: wrap;
 }
-.archive-item:hover { background: rgba(255,255,255,0.06); }
-.archive-info { flex: 1; }
+.archive-item:hover { background: rgba(255,255,255,0.07); }
+.archive-info { flex: 1; min-width: 180px; }
 .archive-name { font-size: 13px; font-weight: 700; }
 .archive-meta { font-size: 10px; color: var(–muted); margin-top: 2px; }
 .archive-actions { display: flex; gap: 6px; }
 .btn-small {
-padding: 4px 10px; font-size: 10px; border-radius: 6px;
+padding: 5px 12px; font-size: 10px; border-radius: 6px;
 background: var(–glass2); border: 1px solid var(–glass-border);
-color: var(–white); cursor: pointer; font-family: ‘Cairo’;
+color: var(–white); cursor: pointer; font-family: ‘Cairo’; font-weight: 700;
 }
-.btn-small:hover { background: var(–emerald); border-color: var(–emerald); }
-.btn-small.danger:hover { background: var(–red); border-color: var(–red); }
+.btn-small:hover { background: var(–emerald); color: #062720; border-color: var(–emerald); }
+.btn-small.danger:hover { background: var(–red); border-color: var(–red); color: #fff; }
 
 .empty-state { text-align: center; padding: 30px; color: var(–muted); font-size: 12px; }
 
-/* Toast */
 .toast {
 position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600;
+padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 700;
 z-index: 200; animation: slideUp 0.3s ease;
-box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
-.toast.success { background: var(–emerald); color: #fff; }
+.toast.success { background: var(–emerald); color: #062720; }
 .toast.error { background: var(–red); color: #fff; }
 .toast.info { background: var(–blue); color: #fff; }
 
-/* Animations */
 @keyframes fadeUp {
 from { opacity: 0; transform: translateY(15px); }
 to { opacity: 1; transform: translateY(0); }
@@ -375,156 +429,217 @@ from { opacity: 0; transform: translate(-50%, 20px); }
 to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* Detail view */
-.center-detail-table {
-width: 100%; border-collapse: collapse; margin-top: 10px;
-}
+/* Centers table */
+.center-detail-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 .center-detail-table th {
-font-size: 11px; color: var(–muted); font-weight: 600; padding: 8px 10px;
-border-bottom: 1px solid var(–glass-border); text-align: right;
+font-size: 11px; color: var(–muted); font-weight: 700; padding: 9px 10px;
+border-bottom: 1px solid var(–glass-border); text-align: right; letter-spacing: 0.3px;
 }
 .center-detail-table td {
-font-size: 12px; padding: 8px 10px; border-bottom: 1px solid var(–glass-border);
+font-size: 12px; padding: 9px 10px; border-bottom: 1px solid var(–glass-border);
 }
-.center-detail-table tr:hover td { background: rgba(255,255,255,0.03); }
+.center-detail-table tr:hover td { background: rgba(255,255,255,0.04); }
 
-.status-badge {
-font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 700;
-}
+.status-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 700; white-space: nowrap; display: inline-block; }
 .sb-match { background: var(–emerald-dim); color: var(–emerald); border: 1px solid var(–emerald); }
 .sb-nomatch { background: var(–red-dim); color: var(–red); border: 1px solid var(–red); }
-.sb-na { background: rgba(120,120,120,0.2); color: var(–muted); border: 1px solid var(–muted); }
+.sb-na { background: rgba(120,130,145,0.2); color: var(–muted); border: 1px solid var(–muted); }
 
-/* Hide file input */
 .hidden-file { display: none; }
 
-/* Mini spark */
-.mini-spark { height: 24px; display: flex; align-items: flex-end; gap: 1px; margin-top: 4px; }
-.mini-spark div { flex: 1; background: var(–emerald); border-radius: 1px; opacity: 0.6; }
+/* Timeline chart */
+.timeline-chart { height: 180px; margin: 10px 0; position: relative; }
+
+/* ============ MOBILE RESPONSIVE ============ */
+@media (max-width: 1100px) {
+.main-grid { grid-template-columns: 1fr 1fr; }
+.main-grid > :nth-child(3) { grid-column: 1 / -1; }
+}
+
+@media (max-width: 768px) {
+.page { padding: 16px 14px 30px; }
+
+```
+.header { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 18px; }
+.header-right { text-align: center; align-items: center; }
+.header-title { font-size: 22px; text-align: center; }
+.header-tag { font-size: 10px; text-align: center; }
+.header-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+.round-selector { grid-column: 1 / -1; width: 100%; min-width: 0; }
+.btn { justify-content: center; padding: 11px 14px; font-size: 12px; }
+
+.kpi-row {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.kpi-card { padding: 16px 14px; }
+.kpi-value { font-size: 30px; }
+.kpi-label { font-size: 10px; }
+.kpi-desc { font-size: 10px; }
+
+.alerts-bar { grid-template-columns: 1fr; }
+
+.main-grid { grid-template-columns: 1fr; gap: 12px; }
+.main-grid > * { grid-column: 1 / -1; }
+
+.panel { padding: 16px; border-radius: 14px; }
+.panel-title { font-size: 12px; }
+
+.tabs {
+  width: 100%;
+  overflow-x: auto;
+  justify-content: flex-start;
+  -webkit-overflow-scrolling: touch;
+}
+.tab { padding: 8px 14px; font-size: 11px; flex-shrink: 0; }
+
+.dept-name { font-size: 12px; }
+.service-badge { font-size: 8px; padding: 1px 6px; }
+.dept-pct { font-size: 13px; }
+
+.compare-grid { grid-template-columns: 1fr; }
+
+.filter-bar { gap: 6px; }
+.filter-chip { padding: 6px 12px; font-size: 10px; }
+
+.items-grid { grid-template-columns: 1fr; }
+
+.heatmap th { font-size: 9px; }
+.heatmap td { font-size: 10px; height: 32px; }
+.heatmap td.name-cell { font-size: 11px; min-width: 110px; }
+
+.modal { padding: 22px; border-radius: 16px; }
+.modal-title { font-size: 16px; }
+.modal-actions { flex-direction: column; }
+.modal-actions .btn { width: 100%; }
+
+.archive-item { flex-direction: column; align-items: stretch; }
+.archive-actions { width: 100%; }
+.archive-actions .btn-small { flex: 1; padding: 8px; }
+```
+
+}
+
+@media (max-width: 480px) {
+.header-actions { grid-template-columns: 1fr; }
+.kpi-row { grid-template-columns: 1fr 1fr; }
+.kpi-value { font-size: 26px; }
+}
+
+/* PDF export styles */
+.pdf-mode .btn, .pdf-mode .tabs, .pdf-mode .header-actions, .pdf-mode .filter-bar { display: none !important; }
 </style>
 
 </head>
 <body>
 
-<!-- ============ HIDDEN FILE INPUT ============ -->
-
 <input type="file" id="fileInput" class="hidden-file" accept=".xlsx,.xls">
 
-<!-- ============ UPLOAD MODAL ============ -->
+<!-- UPLOAD MODAL -->
 
 <div class="modal-backdrop" id="uploadModal">
   <div class="modal">
-    <div class="modal-title">📤 رفع جولة جديدة</div>
-    <div class="modal-sub">ارفع ملف Excel بنفس صيغة نموذج الجولات. يُفضّل أن يكون بصيغة Wide (العمود لكل عنصر) — كما هو النموذج الأصلي.</div>
+    <div class="modal-title">رفع زيارة جديدة</div>
+    <div class="modal-sub">ارفع ملف Excel بنفس صيغة نموذج الجولات (العمود لكل عنصر). الخلايا الفاضية تُعتبر "لا يُقدّم الخدمة" وتُستثنى من حساب النسبة تلقائياً.</div>
 
 ```
-<label class="input-label">اسم الجولة</label>
-<input type="text" id="roundName" class="input-field" placeholder="مثال: جولة الربع الثاني 1447">
+<label class="input-label">اسم الزيارة</label>
+<input type="text" id="roundName" class="input-field" placeholder="مثال: زيارة الربع الثاني 1447">
 
-<label class="input-label">تاريخ الجولة</label>
+<label class="input-label">تاريخ الزيارة</label>
 <input type="date" id="roundDate" class="input-field">
 
 <div class="upload-area" id="uploadArea">
-  <div class="upload-icon">📊</div>
+  <div class="upload-icon">+</div>
   <div class="upload-text">اضغط هنا أو اسحب ملف Excel</div>
   <div class="upload-sub">xlsx أو xls</div>
 </div>
 
 <div class="modal-actions">
-  <button class="btn btn-primary" id="btnConfirmUpload">حفظ الجولة</button>
-  <button class="btn btn-danger" onclick="closeModal('uploadModal')">إلغاء</button>
+  <button class="btn btn-primary" id="btnConfirmUpload">حفظ الزيارة</button>
+  <button class="btn btn-outline" onclick="closeModal('uploadModal')">إلغاء</button>
 </div>
 ```
 
   </div>
 </div>
 
-<!-- ============ ARCHIVE MODAL ============ -->
+<!-- ARCHIVE MODAL -->
 
 <div class="modal-backdrop" id="archiveModal">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-title">🗂️ أرشيف الجولات</div>
-    <div class="modal-sub">جميع الجولات المحفوظة في هذا الجهاز. اختر جولة لعرضها أو احذف ما لم تعد تحتاجه.</div>
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-title">أرشيف الزيارات</div>
+    <div class="modal-sub">جميع الزيارات المحفوظة في هذا الجهاز. اختر زيارة لعرضها أو احذف ما لم تعد تحتاجه.</div>
     <div id="archiveList"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal('archiveModal')">إغلاق</button>
-      <button class="btn btn-danger" onclick="clearArchive()" style="margin-right:auto;">🗑️ حذف الكل</button>
+      <button class="btn btn-outline" onclick="closeModal('archiveModal')">إغلاق</button>
+      <button class="btn btn-outline" onclick="clearArchive()" style="margin-right:auto; color:var(--red); border-color:var(--red);">حذف الكل</button>
     </div>
   </div>
 </div>
 
-<!-- ============ MAIN PAGE ============ -->
+<!-- EXPORT MODAL -->
 
-<div class="page">
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal">
+    <div class="modal-title">تصدير التقرير</div>
+    <div class="modal-sub">اختر صيغة التصدير المناسبة للمشاركة.</div>
+    <div class="modal-actions" style="flex-direction:column; gap:10px;">
+      <button class="btn btn-primary" onclick="exportPDF()" style="width:100%; justify-content:center;">تصدير PDF كامل</button>
+      <button class="btn btn-outline" onclick="exportPNG()" style="width:100%; justify-content:center;">تصدير صورة PNG</button>
+      <button class="btn btn-outline" onclick="closeModal('exportModal')" style="width:100%; justify-content:center;">إلغاء</button>
+    </div>
+  </div>
+</div>
 
-  <!-- Header -->
+<div class="page" id="pageRoot">
 
   <div class="header">
     <div class="header-right">
       <span class="header-tag">الإدارة التنفيذية للخدمات الصحية المساندة</span>
-      <h1 class="header-title">جولات المراكز الصحية</h1>
+      <h1 class="header-title">داشبورد الجولات الميدانية</h1>
       <span class="header-sub">تجمع المدينة المنورة الصحي</span>
     </div>
     <div class="header-actions">
       <select id="roundSelector" class="round-selector"></select>
-      <button class="btn btn-primary" onclick="openUploadModal()">📤 رفع جولة</button>
-      <button class="btn" onclick="openArchiveModal()">🗂️ الأرشيف</button>
+      <button class="btn btn-primary" onclick="openUploadModal()">رفع زيارة</button>
+      <button class="btn btn-outline" onclick="openArchiveModal()">الأرشيف</button>
+      <button class="btn btn-outline" onclick="openExportModal()">تصدير</button>
     </div>
   </div>
 
-  <!-- Tabs -->
-
   <div class="tabs">
-    <button class="tab active" onclick="switchTab(event, 'tab-overview')">نظرة عامة</button>
-    <button class="tab" onclick="switchTab(event, 'tab-centers')">تحليل المراكز</button>
-    <button class="tab" onclick="switchTab(event, 'tab-items')">تفاصيل العناصر</button>
-    <button class="tab" onclick="switchTab(event, 'tab-compare')">مقارنة الجولات</button>
+    <button class="tab active" data-tab="tab-overview" onclick="switchTab(event, 'tab-overview')">نظرة عامة</button>
+    <button class="tab" data-tab="tab-centers" onclick="switchTab(event, 'tab-centers')">تحليل المراكز</button>
+    <button class="tab" data-tab="tab-items" onclick="switchTab(event, 'tab-items')">تفاصيل العناصر</button>
+    <button class="tab" data-tab="tab-compare" onclick="switchTab(event, 'tab-compare')">مقارنة الزيارات</button>
+    <button class="tab" data-tab="tab-tracking" onclick="switchTab(event, 'tab-tracking')">تتبع المركز</button>
   </div>
 
-  <!-- ============ TAB 1: OVERVIEW ============ -->
+  <!-- TAB: OVERVIEW -->
 
   <div id="tab-overview" class="tab-content active">
 
 ```
-<!-- KPIs -->
 <div class="kpi-row" id="kpiRow"></div>
 
-<!-- Main Grid -->
-<div class="main-grid">
-  <!-- Dept bars -->
-  <div class="panel">
-    <div class="panel-title">
-      <span class="left"><span class="dot dot-green"></span>الأداء حسب الإدارة</span>
-      <span class="panel-hint">الخط = المستهدف 90%</span>
-    </div>
-    <div id="deptBars"></div>
-  </div>
+<!-- Critical Alerts -->
+<div class="alerts-bar" id="alertsBar"></div>
 
-  <!-- Rankings -->
-  <div class="panel">
-    <div class="panel-title">
-      <span class="left"><span class="dot dot-gold"></span>ترتيب المراكز</span>
-    </div>
-    <div class="rank-section-title up">▲ الأعلى أداءً</div>
-    <div class="rank-list" id="topCenters"></div>
-    <div class="rank-section-title down">▼ تحتاج تدخل عاجل</div>
-    <div class="rank-list" id="bottomCenters"></div>
-  </div>
-
-  <!-- Donut -->
-  <div class="panel">
-    <div class="panel-title">
-      <span class="left"><span class="dot dot-green"></span>النسبة الإجمالية</span>
-    </div>
-    <div class="donut-wrap" id="donutWrap"></div>
-  </div>
+<!-- HEATMAP FIRST (moved up per user request) -->
+<div class="section-title-row">
+  <span class="section-title">خريطة الأداء الحرارية</span>
+  <span class="section-sub">المراكز × الإدارات</span>
 </div>
-
-<!-- Heatmap -->
-<div class="panel">
+<div class="panel" style="margin-bottom:20px;">
   <div class="panel-title">
-    <span class="left"><span class="dot dot-red"></span>خريطة الأداء — المراكز × الإدارات</span>
-    <span class="panel-hint">مرر على الخلية لرؤية التفاصيل</span>
+    <span class="left"><span class="dot dot-red"></span>أداء كل مركز في كل إدارة</span>
+    <span class="panel-hint">مرر على الخلية للتفاصيل</span>
   </div>
   <div class="heatmap-wrap">
     <table class="heatmap" id="heatmap"></table>
@@ -535,14 +650,46 @@ font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 700;
     <span class="hm-legend-item"><span class="hm-legend-box hm-warn"></span>60-74% متوسط</span>
     <span class="hm-legend-item"><span class="hm-legend-box hm-bad2"></span>45-59% ضعيف</span>
     <span class="hm-legend-item"><span class="hm-legend-box hm-bad3"></span>0-44% حرج</span>
-    <span class="hm-legend-item"><span class="hm-legend-box na-cell" style="border:1px solid rgba(120,120,120,0.3);"></span>غير منطبق</span>
+    <span class="hm-legend-item"><span class="hm-legend-box na-cell" style="border:1px solid rgba(120,130,145,0.3);"></span>لا يُقدّم الخدمة</span>
+  </div>
+</div>
+
+<!-- Main details grid -->
+<div class="section-title-row">
+  <span class="section-title">تفاصيل الأداء</span>
+  <span class="section-sub">حسب الإدارة والمركز</span>
+</div>
+<div class="main-grid">
+  <div class="panel">
+    <div class="panel-title">
+      <span class="left"><span class="dot dot-green"></span>الأداء حسب الإدارة</span>
+      <span class="panel-hint">الخط = المستهدف 90%</span>
+    </div>
+    <div id="deptBars"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span class="left"><span class="dot dot-gold"></span>ترتيب المراكز</span>
+    </div>
+    <div class="rank-section-title up">الأعلى أداءً</div>
+    <div class="rank-list" id="topCenters"></div>
+    <div class="rank-section-title down">تحتاج تدخل عاجل</div>
+    <div class="rank-list" id="bottomCenters"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span class="left"><span class="dot dot-green"></span>النسبة الإجمالية</span>
+    </div>
+    <div class="donut-wrap" id="donutWrap"></div>
   </div>
 </div>
 ```
 
   </div>
 
-  <!-- ============ TAB 2: CENTERS ============ -->
+  <!-- TAB: CENTERS -->
 
   <div id="tab-centers" class="tab-content">
     <div class="panel">
@@ -556,7 +703,7 @@ font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 700;
 <div class="panel" id="centerDetailPanel" style="display:none; margin-top:16px;">
   <div class="panel-title">
     <span class="left"><span class="dot dot-gold"></span>تفاصيل المركز: <span id="selectedCenterName"></span></span>
-    <button class="btn-small" onclick="closeCenterDetail()">إغلاق ×</button>
+    <button class="btn-small" onclick="closeCenterDetail()">إغلاق</button>
   </div>
   <div id="centerDetailBody"></div>
 </div>
@@ -564,36 +711,51 @@ font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 700;
 
   </div>
 
-  <!-- ============ TAB 3: ITEMS ============ -->
+  <!-- TAB: ITEMS -->
 
   <div id="tab-items" class="tab-content">
     <div class="filter-bar" id="deptFilterBar"></div>
     <div class="panel">
       <div class="panel-title">
-        <span class="left"><span class="dot dot-blue"></span>أداء عناصر التحقق — الأعلى والأدنى</span>
+        <span class="left"><span class="dot dot-blue"></span>أداء عناصر التحقق — الأدنى أولاً</span>
       </div>
       <div class="items-grid" id="itemsGrid"></div>
     </div>
   </div>
 
-  <!-- ============ TAB 4: COMPARE ============ -->
+  <!-- TAB: COMPARE -->
 
   <div id="tab-compare" class="tab-content">
     <div class="panel">
       <div class="panel-title">
-        <span class="left"><span class="dot dot-blue"></span>مقارنة جولتين</span>
+        <span class="left"><span class="dot dot-blue"></span>مقارنة زيارتين</span>
       </div>
       <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
         <div style="flex:1; min-width:200px;">
-          <label class="input-label">الجولة الأولى</label>
-          <select id="compareA" class="round-selector" style="width:100%;"></select>
+          <label class="input-label">الزيارة الأولى</label>
+          <select id="compareA" class="round-selector" style="width:100%; min-width:0;"></select>
         </div>
         <div style="flex:1; min-width:200px;">
-          <label class="input-label">الجولة الثانية</label>
-          <select id="compareB" class="round-selector" style="width:100%;"></select>
+          <label class="input-label">الزيارة الثانية</label>
+          <select id="compareB" class="round-selector" style="width:100%; min-width:0;"></select>
         </div>
       </div>
       <div id="compareResult"></div>
+    </div>
+  </div>
+
+  <!-- TAB: CENTER TRACKING -->
+
+  <div id="tab-tracking" class="tab-content">
+    <div class="panel">
+      <div class="panel-title">
+        <span class="left"><span class="dot dot-gold"></span>تتبع تطور مركز عبر الزيارات</span>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="input-label">اختر المركز</label>
+        <select id="trackCenter" class="round-selector" style="width:100%; min-width:0;"></select>
+      </div>
+      <div id="trackingResult"></div>
     </div>
   </div>
 
@@ -606,7 +768,7 @@ font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 700;
 const EMBEDDED_DATA = {"name":"جولة 1447 هـ","date":"2026-04-22","records":[{"c":"السلام","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الفيصلية","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"أبو مرخة","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الهجرة","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"سيد الشهداء","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"باب المجيدي","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"النصر","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"الدويّمة","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الفتح","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"حمراء الأسد","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"شوران","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"القصواء","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"طيبة","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الجرف الغربي","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الدفاع","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الأزهري","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"العزيزية","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الخالدية","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير منطبق"},{"c":"وعيرة","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"تلعة الهبوب","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"باقدو","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الملك فهد","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"البدراني","d":"الأشعة","i":"توفر أشعة (X-Ray)","s":"مطابق"},{"c":"السلام","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"الفيصلية","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"أبو مرخة","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الهجرة","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"سيد الشهداء","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"باب المجيدي","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"النصر","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الدويّمة","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الفتح","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"حمراء الأسد","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"شوران","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"القصواء","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"طيبة","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الجرف الغربي","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الدفاع","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الأزهري","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"العزيزية","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الخالدية","d":"الأشعة","i":"توفر اشعة سونار","s":"غير منطبق"},{"c":"وعيرة","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"تلعة الهبوب","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"باقدو","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"الملك فهد","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"الأشعة","i":"توفر اشعة سونار","s":"مطابق"},{"c":"البدراني","d":"الأشعة","i":"توفر اشعة سونار","s":"غير مطابق"},{"c":"السلام","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"الفيصلية","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"أبو مرخة","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الهجرة","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"سيد الشهداء","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"باب المجيدي","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"النصر","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الدويّمة","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الفتح","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"حمراء الأسد","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"شوران","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"القصواء","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"طيبة","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الجرف الغربي","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الدفاع","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الأزهري","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"العزيزية","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الخالدية","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"وعيرة","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"تلعة الهبوب","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"باقدو","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الملك فهد","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"غير مطابق"},{"c":"البدراني","d":"الأشعة","i":"يوجد تقني لعمل الاشعة","s":"مطابق"},{"c":"السلام","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الفيصلية","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"أبو مرخة","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الهجرة","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"سيد الشهداء","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"باب المجيدي","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"النصر","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الدويّمة","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الفتح","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"حمراء الأسد","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"شوران","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"القصواء","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"طيبة","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الجرف الغربي","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الدفاع","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الأزهري","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"العزيزية","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"مطابق"},{"c":"الخالدية","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"وعيرة","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"باقدو","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"مطابق"},{"c":"الملك فهد","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير منطبق"},{"c":"البدراني","d":"الأشعة","i":"يوجد جهاز ماموقرام للكشف عن سرطان الثدي","s":"غير منطبق"},{"c":"السلام","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الفيصلية","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"أبو مرخة","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الهجرة","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير منطبق"},{"c":"سيد الشهداء","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"باب المجيدي","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"النصر","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الدويّمة","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الفتح","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"حمراء الأسد","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"شوران","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"القصواء","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"طيبة","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الجرف الغربي","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الدفاع","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الأزهري","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"العزيزية","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"مطابق"},{"c":"الخالدية","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير منطبق"},{"c":"وعيرة","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"باقدو","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الملك فهد","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"البدراني","d":"الأشعة","i":"هل جهاز الاشعة مرتبط في نظام  Agfa الباكس","s":"غير مطابق"},{"c":"السلام","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الفيصلية","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"أبو مرخة","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الهجرة","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"مطابق"},{"c":"سيد الشهداء","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"باب المجيدي","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"النصر","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الدويّمة","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الفتح","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"حمراء الأسد","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"شوران","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير منطبق"},{"c":"القصواء","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"طيبة","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الجرف الغربي","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الدفاع","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الأزهري","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"العزيزية","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الخالدية","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"وعيرة","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"باقدو","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"مطابق"},{"c":"الملك فهد","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"البدراني","d":"العلاج الطبيعي","i":"تتوفر عيادة للعلاج الطبيعي","s":"غير مطابق"},{"c":"السلام","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الفيصلية","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"أبو مرخة","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الهجرة","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"مطابق"},{"c":"سيد الشهداء","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"باب المجيدي","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"النصر","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الدويّمة","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الفتح","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"حمراء الأسد","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"شوران","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"مطابق"},{"c":"القصواء","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"طيبة","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الجرف الغربي","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الدفاع","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الأزهري","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"العزيزية","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الخالدية","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"وعيرة","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"باقدو","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"مطابق"},{"c":"الملك فهد","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"البدراني","d":"العلاج الطبيعي","i":"يتوفر كادر - العلاج الطبيعي","s":"غير مطابق"},{"c":"السلام","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"توفر غرفة للتعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"العزيزية","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"الخالدية","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"غير مطابق"},{"c":"البدراني","d":"التعقيم","i":"غسالة حرارية - التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير منطبق"},{"c":"سيد الشهداء","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"القصواء","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"التراسونيك - التعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"التراسونيك - التعقيم","s":"غير مطابق"},{"c":"السلام","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"غير مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"غير مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"حوضين مغسلة -  التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير منطبق"},{"c":"النصر","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"الأزهري","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"مسدس هواء Air gun -  التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"شوران","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الأزهري","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الخالدية","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"مسدس ماء Water gun -  التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"غير منطبق"},{"c":"حمراء الأسد","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"غير منطبق"},{"c":"الأزهري","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"طاولات فرز - التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"غير منطبق"},{"c":"الفيصلية","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"غير مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"غير مطابق"},{"c":"البدراني","d":"التعقيم","i":"سلاسل للغسيل Basket - التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"خزان ماء مركزي- مقطر  - التعقيم","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"غير منطبق"},{"c":"الفيصلية","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"غير منطبق"},{"c":"شوران","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"غير مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"جهاز بخار سنترال اتوكليف/2","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"النصر","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الفتح","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"شوران","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الخالدية","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"كابينة تجفيف","s":"غير مطابق"},{"c":"البدراني","d":"التعقيم","i":"كابينة تجفيف","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"Sealer/2","s":"غير مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"Sealer/2","s":"غير منطبق"},{"c":"الفتح","d":"التعقيم","i":"Sealer/2","s":"غير مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"Sealer/2","s":"غير مطابق"},{"c":"الخالدية","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"Sealer/2","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"Sealer/2","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"Sealer/2","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"النصر","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"باقدو","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"غير مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"مكبر بإضاءة للفحص","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"طاولات فرز و تجميع","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"طاولات فرز و تجميع","s":"غير مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"طاولات فرز و تجميع","s":"غير منطبق"},{"c":"الفتح","d":"التعقيم","i":"طاولات فرز و تجميع","s":"غير مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"طاولات فرز و تجميع","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"حضانة Incubation","s":"غير مطابق"},{"c":"طيبة","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"حضانة Incubation","s":"غير مطابق"},{"c":"الخالدية","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"حضانة Incubation","s":"غير مطابق"},{"c":"البدراني","d":"التعقيم","i":"حضانة Incubation","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"غير مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"غير مطابق"},{"c":"الهجرة","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"النصر","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"غير مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"غير مطابق"},{"c":"الخالدية","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"وعيرة","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"اتوكليف محمول للمراكز ذات الضغط المنخفض","s":"مطابق"},{"c":"السلام","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الفيصلية","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"أبو مرخة","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الهجرة","d":"التعقيم","i":"توفر كادر صحي كافي","s":"غير منطبق"},{"c":"قبليتين بني سلمة","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"سيد الشهداء","d":"التعقيم","i":"توفر كادر صحي كافي","s":"غير مطابق"},{"c":"باب المجيدي","d":"التعقيم","i":"توفر كادر صحي كافي","s":"غير مطابق"},{"c":"النصر","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الدويّمة","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الفتح","d":"التعقيم","i":"توفر كادر صحي كافي","s":"غير مطابق"},{"c":"حمراء الأسد","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"شوران","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"القصواء","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"طيبة","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الجرف الغربي","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الجرف الشرقي","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الدفاع","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الأزهري","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"العزيزية","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الخالدية","d":"التعقيم","i":"توفر كادر صحي كافي","s":"غير مطابق"},{"c":"وعيرة","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"تلعة الهبوب","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"باقدو","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الملك فهد","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"الحرة الشرقية","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"البدراني","d":"التعقيم","i":"توفر كادر صحي كافي","s":"مطابق"},{"c":"السلام","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الفيصلية","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"أبو مرخة","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الهجرة","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"سيد الشهداء","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"باب المجيدي","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"النصر","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الدويّمة","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الفتح","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"حمراء الأسد","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"شوران","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"القصواء","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"غير منطبق"},{"c":"طيبة","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الجرف الغربي","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الجرف الشرقي","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الدفاع","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الأزهري","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"العزيزية","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الخالدية","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"وعيرة","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"تلعة الهبوب","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"باقدو","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الملك فهد","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"الحرة الشرقية","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"البدراني","d":"التثقيف الصحي","i":"يوجد مدرب صحي - التثقيف الصحي","s":"مطابق"},{"c":"السلام","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الفيصلية","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"غير مطابق"},{"c":"أبو مرخة","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الهجرة","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"سيد الشهداء","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"باب المجيدي","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"النصر","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الدويّمة","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الفتح","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"حمراء الأسد","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"غير مطابق"},{"c":"شوران","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"القصواء","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"طيبة","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الجرف الغربي","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الجرف الشرقي","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الدفاع","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الأزهري","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"العزيزية","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الخالدية","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"وعيرة","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"تلعة الهبوب","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"باقدو","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الملك فهد","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"الحرة الشرقية","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"البدراني","d":"التثقيف الصحي","i":"يوجد جدولة للمواعيد","s":"مطابق"},{"c":"السلام","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الفيصلية","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"غير مطابق"},{"c":"أبو مرخة","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الهجرة","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"سيد الشهداء","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"باب المجيدي","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"النصر","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الدويّمة","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الفتح","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"حمراء الأسد","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"غير مطابق"},{"c":"شوران","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"القصواء","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"طيبة","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الجرف الغربي","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الجرف الشرقي","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الدفاع","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الأزهري","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"العزيزية","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الخالدية","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"غير مطابق"},{"c":"وعيرة","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"تلعة الهبوب","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"باقدو","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الملك فهد","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"الحرة الشرقية","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"البدراني","d":"التثقيف الصحي","i":"يوجد يوزر في منصة رقيم  للمدرب الصحي","s":"مطابق"},{"c":"السلام","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"غير مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"غير مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"يتوفر موعد على نظام صحتي","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"غير مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"غير منطبق"},{"c":"الدفاع","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"غير مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"تتوفر الخدمة بالمركز","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"يتم الأستقبال  بدون موعد","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"غير مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"تم طلب أثبات الهوية بالأستقبال","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"غير مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"تم طلب الهوية في نقطة سحب الدم","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"شوران","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"غير مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"تم طلب الأنابيب البنفسجية بكميات كافية","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"شوران","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"تتوفر الأنابيب الصفراء أو الحمراء بكميات كافية","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"شوران","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"غير مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"غير منطبق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"تتوفر تجهيزات حفظ العينات (ثلاجة - أو حافظة )","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"غير منطبق"},{"c":"الدفاع","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"غير مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"يتم الألتزام بوضع الباركود على العينات","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"هل تم الأطلاع على النعميم من مقدمي الخدمة","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"شوران","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"مدير المركز على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"المدير الطبي على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"الأستقبال على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"السلام","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفيصلية","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"أبو مرخة","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الهجرة","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"سيد الشهداء","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باب المجيدي","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"النصر","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدويّمة","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الفتح","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"غير مطابق"},{"c":"حمراء الأسد","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"غير مطابق"},{"c":"شوران","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"القصواء","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"طيبة","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الغربي","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الجرف الشرقي","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الدفاع","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الأزهري","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"العزيزية","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الخالدية","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"وعيرة","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"تلعة الهبوب","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"باقدو","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الملك فهد","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"مطابق"},{"c":"الحرة الشرقية","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"البدراني","d":"فحص الزواج","i":"موظف السحب على أطلاع بوجود الخدمة","s":"غير منطبق"},{"c":"السلام","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الفيصلية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"أبو مرخة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"غير منطبق"},{"c":"الهجرة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"سيد الشهداء","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"باب المجيدي","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"النصر","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الدويّمة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الفتح","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"حمراء الأسد","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"شوران","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"القصواء","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"طيبة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الجرف الغربي","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الجرف الشرقي","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الدفاع","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الأزهري","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"العزيزية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الخالدية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"وعيرة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"تلعة الهبوب","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"باقدو","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"مطابق"},{"c":"الملك فهد","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"غير منطبق"},{"c":"البدراني","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب  الصفراء أو الحمراء بكميات كافية","s":"غير منطبق"},{"c":"السلام","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الفيصلية","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"أبو مرخة","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الهجرة","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"سيد الشهداء","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"باب المجيدي","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"النصر","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الدويّمة","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الفتح","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"حمراء الأسد","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"شوران","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"غير مطابق"},{"c":"القصواء","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"طيبة","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الجرف الغربي","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الجرف الشرقي","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الدفاع","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الأزهري","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"العزيزية","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الخالدية","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"وعيرة","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"تلعة الهبوب","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"باقدو","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الملك فهد","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"مطابق"},{"c":"الحرة الشرقية","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"غير منطبق"},{"c":"البدراني","d":"المختبر (الرعاية)","i":"تم طلب الأنابيب البنفسجية بكميات كافية  بالمختبر","s":"غير منطبق"},{"c":"السلام","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الفيصلية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"أبو مرخة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الهجرة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"سيد الشهداء","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"باب المجيدي","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"النصر","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الدويّمة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الفتح","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"حمراء الأسد","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"شوران","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"القصواء","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"طيبة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"مطابق"},{"c":"الجرف الغربي","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الدفاع","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الأزهري","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"العزيزية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الخالدية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"وعيرة","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"باقدو","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"مطابق"},{"c":"الملك فهد","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير منطبق"},{"c":"البدراني","d":"المختبر (الرعاية)","i":"تتوفر الأنابيب الرمادية بكميات كافية","s":"غير منطبق"},{"c":"السلام","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الفيصلية","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"أبو مرخة","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"غير مطابق"},{"c":"الهجرة","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"سيد الشهداء","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"باب المجيدي","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"النصر","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الدويّمة","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الفتح","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"حمراء الأسد","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"شوران","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"القصواء","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"طيبة","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الجرف الغربي","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الجرف الشرقي","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الدفاع","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الأزهري","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"العزيزية","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الخالدية","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"وعيرة","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"تلعة الهبوب","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"غير مطابق"},{"c":"باقدو","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الملك فهد","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"مطابق"},{"c":"الحرة الشرقية","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"غير منطبق"},{"c":"البدراني","d":"المختبر (الرعاية)","i":"Albumin to Ceratinine Ratio","s":"غير منطبق"},{"c":"السلام","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الفيصلية","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"أبو مرخة","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الهجرة","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"قبليتين بني سلمة","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"سيد الشهداء","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير منطبق"},{"c":"باب المجيدي","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"النصر","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الدويّمة","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الفتح","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"حمراء الأسد","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"شوران","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"القصواء","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"طيبة","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"مطابق"},{"c":"الجرف الغربي","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الجرف الشرقي","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الدفاع","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الأزهري","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"العزيزية","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الخالدية","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"وعيرة","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"تلعة الهبوب","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"باقدو","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"مطابق"},{"c":"الملك فهد","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير مطابق"},{"c":"الحرة الشرقية","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير منطبق"},{"c":"البدراني","d":"المختبر (الرعاية)","i":"توفر فحص OGTT","s":"غير منطبق"},{"c":"السلام","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الفيصلية","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"أبو مرخة","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الهجرة","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"قبليتين بني سلمة","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"سيد الشهداء","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"باب المجيدي","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"النصر","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الدويّمة","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الفتح","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"حمراء الأسد","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"شوران","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"القصواء","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"طيبة","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الجرف الغربي","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الجرف الشرقي","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الدفاع","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الأزهري","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"العزيزية","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الخالدية","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"وعيرة","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"تلعة الهبوب","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"باقدو","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الملك فهد","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"مطابق"},{"c":"الحرة الشرقية","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"غير منطبق"},{"c":"البدراني","d":"المختبر (الرعاية)","i":"توفر Sampler بالمختبر لأخذ العينة لسرطان القولون","s":"غير منطبق"}]};
 
 /* ================================================================
-   COLUMN → DEPARTMENT MAPPING (for uploaded files)
+   COLUMN → DEPARTMENT MAPPING
 ================================================================ */
 const COL_MAP = {
   'توفر أشعة (X-Ray)': 'الأشعة',
@@ -661,19 +823,51 @@ const COL_MAP = {
 const DEPT_ORDER = ['فحص الزواج', 'الأشعة', 'المختبر (الرعاية)', 'التعقيم', 'العلاج الطبيعي', 'التثقيف الصحي'];
 
 /* ================================================================
+   SERVICE AVAILABILITY RULES
+   المراكز التي تقدم كل خدمة (الباقي يُستثنى تلقائياً)
+================================================================ */
+const SERVICE_RULES = {
+  // الأشعة (X-Ray + سونار + تقني + ربط Agfa) متوفرة فقط في:
+  'xray_centers': ['الهجرة', 'البدراني', 'الدويّمة', 'الدعيثة'],
+  // الماموغرام متوفر فقط في:
+  'mammo_centers': ['الدويّمة', 'الدعيثة', 'العزيزية', 'باقدو'],
+};
+
+// Items that follow X-Ray rule
+const XRAY_ITEMS = new Set([
+  'توفر أشعة (X-Ray)',
+  'توفر اشعة سونار',
+  'يوجد تقني لعمل الاشعة',
+  'هل جهاز الاشعة مرتبط في نظام  Agfa الباكس',
+]);
+const MAMMO_ITEMS = new Set([
+  'يوجد جهاز ماموقرام للكشف عن سرطان الثدي',
+]);
+
+function applyServiceRules(records) {
+  // For each record, if it's an xray/mammo item and center not in allowed list, mark as "لا يُقدّم الخدمة"
+  return records.map(r => {
+    if (XRAY_ITEMS.has(r.i) && !SERVICE_RULES.xray_centers.includes(r.c)) {
+      return { ...r, s: 'لا يُقدّم الخدمة' };
+    }
+    if (MAMMO_ITEMS.has(r.i) && !SERVICE_RULES.mammo_centers.includes(r.c)) {
+      return { ...r, s: 'لا يُقدّم الخدمة' };
+    }
+    return r;
+  });
+}
+
+/* ================================================================
    STATE
 ================================================================ */
 let state = {
   currentRoundId: 'embedded',
-  rounds: {},     // id -> {id, name, date, records}
+  rounds: {},
   activeData: null,
   deptFilter: null,
 };
 
-/* ================================================================
-   STORAGE
-================================================================ */
-const STORAGE_KEY = 'umec_jawalat_rounds_v1';
+const STORAGE_KEY = 'umec_jawalat_rounds_v2';
 
 function loadArchive() {
   try {
@@ -692,8 +886,8 @@ function saveArchive(archive) {
 }
 
 function deleteRound(id) {
-  if (id === 'embedded') { toast('لا يمكن حذف الجولة الأصلية', 'error'); return; }
-  if (!confirm('هل أنت متأكد من حذف هذه الجولة؟')) return;
+  if (id === 'embedded') { toast('لا يمكن حذف الزيارة الأصلية', 'error'); return; }
+  if (!confirm('هل أنت متأكد من حذف هذه الزيارة؟')) return;
   const archive = loadArchive();
   delete archive[id];
   saveArchive(archive);
@@ -704,7 +898,7 @@ function deleteRound(id) {
 }
 
 function clearArchive() {
-  if (!confirm('سيتم حذف جميع الجولات المرفوعة (عدا الأصلية). متأكد؟')) return;
+  if (!confirm('سيتم حذف جميع الزيارات المرفوعة (عدا الأصلية). متأكد؟')) return;
   localStorage.removeItem(STORAGE_KEY);
   initState();
   renderAll();
@@ -712,23 +906,23 @@ function clearArchive() {
   toast('تم مسح الأرشيف', 'info');
 }
 
-/* ================================================================
-   STATUS NORMALIZATION
-================================================================ */
 function normStatus(s) {
-  if (s === null || s === undefined) return 'غير منطبق';
+  if (s === null || s === undefined) return 'لا يُقدّم الخدمة';
   const t = String(s).trim();
-  if (!t) return 'غير منطبق';
+  if (!t) return 'لا يُقدّم الخدمة';
   if (t === 'مطابق') return 'مطابق';
   if (t === 'غير مطابق') return 'غير مطابق';
-  if (t === 'غير منطبق') return 'غير منطبق';
-  return 'غير منطبق';
+  if (t === 'لا يُقدّم الخدمة' || t === 'غير منطبق') return 'لا يُقدّم الخدمة';
+  return 'لا يُقدّم الخدمة';
 }
 
 /* ================================================================
    COMPUTE METRICS
 ================================================================ */
-function computeMetrics(records) {
+function computeMetrics(recordsRaw) {
+  // Apply service availability rules
+  const records = applyServiceRules(recordsRaw);
+
   const byDept = {}, byCenter = {}, byItem = {};
   const centers = new Set(), depts = new Set(), items = new Set();
   let match = 0, nomatch = 0, na = 0;
@@ -741,7 +935,6 @@ function computeMetrics(records) {
     if (!byDept[r.d]) byDept[r.d] = {m:0,n:0,na:0};
     byDept[r.d][s==='مطابق'?'m':s==='غير مطابق'?'n':'na']++;
 
-    const key = r.c + '||' + r.d;
     if (!byCenter[r.c]) byCenter[r.c] = { total:{m:0,n:0,na:0}, byDept:{} };
     byCenter[r.c].total[s==='مطابق'?'m':s==='غير مطابق'?'n':'na']++;
     if (!byCenter[r.c].byDept[r.d]) byCenter[r.c].byDept[r.d] = {m:0,n:0,na:0};
@@ -754,7 +947,6 @@ function computeMetrics(records) {
   const applicable = match + nomatch;
   const pct = applicable > 0 ? (match / applicable) : 0;
 
-  // Dept metrics
   const deptMetrics = {};
   for (const d of Object.keys(byDept)) {
     const x = byDept[d];
@@ -762,7 +954,6 @@ function computeMetrics(records) {
     deptMetrics[d] = { match:x.m, nomatch:x.n, na:x.na, applicable:app, pct: app>0 ? x.m/app : 0 };
   }
 
-  // Center metrics
   const centerMetrics = {};
   for (const c of Object.keys(byCenter)) {
     const x = byCenter[c].total;
@@ -774,7 +965,6 @@ function computeMetrics(records) {
     };
   }
 
-  // Item metrics
   const itemMetrics = {};
   for (const it of Object.keys(byItem)) {
     const x = byItem[it];
@@ -789,7 +979,8 @@ function computeMetrics(records) {
     item: itemMetrics,
     centers: [...centers].sort(),
     depts: DEPT_ORDER.filter(d => depts.has(d)),
-    items: [...items]
+    items: [...items],
+    records: records
   };
 }
 
@@ -805,7 +996,7 @@ function initState() {
 }
 
 /* ================================================================
-   RENDER — ROUND SELECTOR
+   ROUND SELECTOR
 ================================================================ */
 function renderRoundSelector() {
   const sel = document.getElementById('roundSelector');
@@ -826,20 +1017,29 @@ function renderRoundSelector() {
     renderAll();
   };
 
-  // Also update compare selectors
-  for (const id of ['compareA','compareB']) {
+  for (const id of ['compareA','compareB','trackCenter']) {
     const s = document.getElementById(id);
-    s.innerHTML = '';
-    for (const r of sorted) {
-      const opt = document.createElement('option');
-      opt.value = r.id; opt.textContent = r.name;
-      s.appendChild(opt);
+    if (!s) continue;
+    if (id === 'trackCenter') {
+      s.innerHTML = '<option value="">— اختر مركزاً —</option>';
+      for (const c of state.activeData.centers) {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        s.appendChild(opt);
+      }
+    } else {
+      s.innerHTML = '';
+      for (const r of sorted) {
+        const opt = document.createElement('option');
+        opt.value = r.id; opt.textContent = r.name;
+        s.appendChild(opt);
+      }
     }
   }
 }
 
 /* ================================================================
-   RENDER — KPI ROW
+   KPI ROW
 ================================================================ */
 function renderKpis() {
   const t = state.activeData.totals;
@@ -847,7 +1047,7 @@ function renderKpis() {
   const gap = (0.9 - t.pct) * 100;
   const html = `
     <div class="kpi-card blue">
-      <div class="kpi-label">المراكز المزارة</div>
+      <div class="kpi-label">عدد المراكز التي تمت زيارتها</div>
       <div class="kpi-value">${state.activeData.centers.length}</div>
       <div class="kpi-desc">مركز رعاية أولية</div>
     </div>
@@ -859,18 +1059,77 @@ function renderKpis() {
     <div class="kpi-card red">
       <div class="kpi-label">غير مطابق</div>
       <div class="kpi-value">${t.nomatch}</div>
-      <div class="kpi-desc">${t.na} غير منطبق (مستثنى)</div>
+      <div class="kpi-desc">${t.na} لا يُقدّم الخدمة (مستثنى)</div>
     </div>
     <div class="kpi-card gold">
       <div class="kpi-label">نسبة المطابقة</div>
       <div class="kpi-value">${pctStr}</div>
-      <div class="kpi-desc">الفجوة عن 90%: ${gap > 0 ? gap.toFixed(1)+'%' : 'تحقق ✓'}</div>
+      <div class="kpi-desc">${gap > 0 ? 'الفجوة عن 90%: '+gap.toFixed(1)+'%' : 'تحقق المستهدف'}</div>
     </div>`;
   document.getElementById('kpiRow').innerHTML = html;
 }
 
 /* ================================================================
-   RENDER — DEPT BARS
+   ALERTS - COMMAND CENTER FEATURE
+================================================================ */
+function renderAlerts() {
+  const alerts = [];
+  const centers = Object.entries(state.activeData.center);
+
+  // Critical centers < 50%
+  const critical = centers.filter(([_,m]) => m.applicable > 0 && m.pct < 0.5);
+  if (critical.length > 0) {
+    alerts.push({
+      type: 'critical',
+      num: critical.length,
+      title: 'مراكز حرجة',
+      body: `أقل من 50% مطابقة: ${critical.map(x=>x[0]).slice(0,3).join('، ')}${critical.length>3?' +'+(critical.length-3):''}`
+    });
+  }
+
+  // Excellent centers >= 90%
+  const excellent = centers.filter(([_,m]) => m.applicable > 0 && m.pct >= 0.9);
+  if (excellent.length > 0) {
+    alerts.push({
+      type: 'success',
+      num: excellent.length,
+      title: 'مراكز متميزة',
+      body: `حققت 90% فأعلى: ${excellent.map(x=>x[0]).slice(0,3).join('، ')}${excellent.length>3?' +'+(excellent.length-3):''}`
+    });
+  }
+
+  // Critical departments
+  const criticalDepts = Object.entries(state.activeData.dept)
+    .filter(([_,m]) => m.applicable > 0 && m.pct < 0.6);
+  if (criticalDepts.length > 0) {
+    alerts.push({
+      type: 'warning',
+      num: criticalDepts.length,
+      title: 'إدارات تحت المستهدف',
+      body: criticalDepts.map(([d,m]) => `${d} (${(m.pct*100).toFixed(0)}%)`).join('، ')
+    });
+  }
+
+  if (alerts.length === 0) {
+    document.getElementById('alertsBar').innerHTML = '';
+    return;
+  }
+
+  let html = '';
+  for (const a of alerts) {
+    html += `<div class="alert alert-${a.type}">
+      <div class="alert-num">${a.num}</div>
+      <div style="flex:1; min-width:0;">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-body">${a.body}</div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('alertsBar').innerHTML = html;
+}
+
+/* ================================================================
+   DEPT BARS
 ================================================================ */
 function renderDeptBars() {
   const el = document.getElementById('deptBars');
@@ -882,11 +1141,18 @@ function renderDeptBars() {
     const pct = m.pct * 100;
     const cls = pct >= 75 ? 'bar-good' : pct >= 60 ? 'bar-warn' : 'bar-bad';
     const color = pct >= 75 ? 'var(--emerald)' : pct >= 60 ? 'var(--gold)' : 'var(--red)';
-    const ptNote = d === 'العلاج الطبيعي' ? `<span class="pt-badge">مفعّل في ${countActiveCentersForDept(d)} مراكز</span>` : '';
+
+    let serviceBadge = '';
+    const activeCenters = countActiveCentersForDept(d);
+    const totalCenters = state.activeData.centers.length;
+    if (activeCenters < totalCenters) {
+      serviceBadge = `<span class="service-badge">يُقدَّم في ${activeCenters} من ${totalCenters}</span>`;
+    }
+
     html += `
       <div class="dept-item">
         <div class="dept-header">
-          <span class="dept-name">${d} ${ptNote}</span>
+          <span class="dept-name">${d} ${serviceBadge}</span>
           <div class="dept-stats">
             <span class="dept-pct" style="color:${color}">${pct.toFixed(1)}%</span>
             <span class="dept-count">${m.match}/${m.applicable}</span>
@@ -914,15 +1180,17 @@ function countActiveCentersForDept(dept) {
 }
 
 /* ================================================================
-   RENDER — RANKINGS
+   RANKINGS
 ================================================================ */
 function renderRankings() {
-  const centers = state.activeData.centers.map(c => ({
-    name: c,
-    pct: state.activeData.center[c].pct,
-    match: state.activeData.center[c].match,
-    applicable: state.activeData.center[c].applicable
-  }));
+  const centers = state.activeData.centers
+    .filter(c => state.activeData.center[c].applicable > 0)
+    .map(c => ({
+      name: c,
+      pct: state.activeData.center[c].pct,
+      match: state.activeData.center[c].match,
+      applicable: state.activeData.center[c].applicable
+    }));
   centers.sort((a,b) => b.pct - a.pct);
   const top = centers.slice(0, 5);
   const bottom = [...centers].sort((a,b) => a.pct - b.pct).slice(0, 5);
@@ -947,20 +1215,17 @@ function renderRankings() {
 }
 
 /* ================================================================
-   RENDER — DONUT
+   DONUT
 ================================================================ */
 function renderDonut() {
   const t = state.activeData.totals;
   const pct = t.pct;
-  const circum = 2 * Math.PI * 62; // ~389.56
-  const matchLen = circum * pct * (t.applicable / (t.applicable + 0.0001));
-  // Simpler: just show match vs nomatch out of applicable
+  const circum = 2 * Math.PI * 62;
   const pctPart = circum * pct;
-  const nomatchPart = circum * (1 - pct);
 
   const html = `
     <svg class="donut-svg" width="170" height="170" viewBox="0 0 170 170">
-      <circle cx="85" cy="85" r="62" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="16"/>
+      <circle cx="85" cy="85" r="62" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="16"/>
       <circle cx="85" cy="85" r="62" fill="none" stroke="url(#donutG1)" stroke-width="16"
         stroke-dasharray="${pctPart.toFixed(2)} ${(circum - pctPart).toFixed(2)}"
         stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 85 85)"/>
@@ -971,7 +1236,7 @@ function renderDonut() {
         </linearGradient>
       </defs>
       <text x="85" y="80" text-anchor="middle" fill="#e8edf5" font-size="26" font-weight="900" font-family="Cairo">${(pct*100).toFixed(1)}%</text>
-      <text x="85" y="102" text-anchor="middle" fill="#7a8ba0" font-size="11" font-family="Cairo">مطابقة</text>
+      <text x="85" y="102" text-anchor="middle" fill="#98a8bd" font-size="11" font-family="Cairo">مطابقة</text>
     </svg>
     <div class="donut-legend">
       <div class="legend-row">
@@ -983,20 +1248,20 @@ function renderDonut() {
         <span class="legend-val" style="color:var(--red)">${t.nomatch}</span>
       </div>
       <div class="legend-row">
-        <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:var(--muted)"></span><span class="legend-label">غير منطبق (مستثنى)</span></span>
+        <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:var(--muted)"></span><span class="legend-label">لا يُقدّم الخدمة</span></span>
         <span class="legend-val" style="color:var(--muted)">${t.na}</span>
       </div>
       <div class="gap-box">
         <div class="gap-label">الفجوة عن المستهدف 90%</div>
         <div class="gap-val">${((0.9 - pct)*100).toFixed(1)}%</div>
-        <div class="gap-desc">يحتاج ${Math.max(0, Math.ceil(0.9*t.applicable - t.match))} عنصر إضافي للوصول للمستهدف</div>
+        <div class="gap-desc">يحتاج ${Math.max(0, Math.ceil(0.9*t.applicable - t.match))} عنصر إضافي</div>
       </div>
     </div>`;
   document.getElementById('donutWrap').innerHTML = html;
 }
 
 /* ================================================================
-   RENDER — HEATMAP
+   HEATMAP
 ================================================================ */
 function cellClass(pct, applicable) {
   if (applicable === 0) return 'na-cell';
@@ -1011,7 +1276,7 @@ function renderHeatmap() {
   const t = document.getElementById('heatmap');
   const depts = state.activeData.depts;
   const centers = state.activeData.centers
-    .map(c => ({ name: c, pct: state.activeData.center[c].pct }))
+    .map(c => ({ name: c, pct: state.activeData.center[c].pct, applicable: state.activeData.center[c].applicable }))
     .sort((a,b) => b.pct - a.pct)
     .map(x => x.name);
 
@@ -1025,7 +1290,7 @@ function renderHeatmap() {
     for (const d of depts) {
       const bd = cd.byDept[d];
       if (!bd || (bd.m + bd.n === 0)) {
-        html += `<td class="na-cell" title="الخدمة غير مفعلة">—</td>`;
+        html += `<td class="na-cell" title="${d}: لا يُقدّم الخدمة">—</td>`;
       } else {
         const p = bd.m / (bd.m + bd.n);
         const cls = cellClass(p, bd.m + bd.n);
@@ -1040,7 +1305,7 @@ function renderHeatmap() {
 }
 
 /* ================================================================
-   TAB 2: CENTERS LIST
+   CENTERS LIST
 ================================================================ */
 function renderCentersList() {
   const list = state.activeData.centers.map(c => ({
@@ -1048,8 +1313,8 @@ function renderCentersList() {
     ...state.activeData.center[c]
   })).sort((a,b) => b.pct - a.pct);
 
-  let html = `<table class="center-detail-table">
-    <thead><tr><th>#</th><th>المركز</th><th>مطابق</th><th>غير مطابق</th><th>غير منطبق</th><th>النسبة</th><th>التصنيف</th></tr></thead><tbody>`;
+  let html = `<div style="overflow-x:auto;"><table class="center-detail-table">
+    <thead><tr><th>#</th><th>المركز</th><th>مطابق</th><th>غير مطابق</th><th>لا يُقدّم</th><th>النسبة</th><th>التصنيف</th></tr></thead><tbody>`;
 
   list.forEach((c, i) => {
     const pct = c.pct * 100;
@@ -1057,14 +1322,14 @@ function renderCentersList() {
     html += `<tr onclick="showCenterDetail('${c.name.replace(/'/g,"\\'")}')" style="cursor:pointer;">
       <td>${i+1}</td>
       <td style="font-weight:700;">${c.name}</td>
-      <td style="color:var(--emerald);">${c.match}</td>
-      <td style="color:var(--red);">${c.nomatch}</td>
+      <td style="color:var(--emerald); font-weight:700;">${c.match}</td>
+      <td style="color:var(--red); font-weight:700;">${c.nomatch}</td>
       <td style="color:var(--muted);">${c.na}</td>
-      <td style="font-weight:800; font-size:14px;">${pct.toFixed(1)}%</td>
+      <td style="font-weight:900; font-size:14px;">${pct.toFixed(1)}%</td>
       <td><span class="status-badge ${level[1]}">${level[0]}</span></td>
     </tr>`;
   });
-  html += '</tbody></table>';
+  html += '</tbody></table></div>';
   document.getElementById('allCentersList').innerHTML = html;
 }
 
@@ -1074,18 +1339,17 @@ function showCenterDetail(centerName) {
   document.getElementById('selectedCenterName').textContent = centerName;
   document.getElementById('centerDetailPanel').style.display = 'block';
 
-  // Find records for this center
-  const records = state.rounds[state.currentRoundId].records.filter(r => r.c === centerName);
+  const records = state.activeData.records.filter(r => r.c === centerName);
   const byDept = {};
   for (const r of records) {
     if (!byDept[r.d]) byDept[r.d] = [];
     byDept[r.d].push(r);
   }
 
-  let html = `<div style="margin-bottom:16px; padding:12px; background:rgba(255,255,255,0.03); border-radius:10px;">
+  let html = `<div style="margin-bottom:16px; padding:14px; background:rgba(255,255,255,0.04); border-radius:10px;">
     <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">النسبة الإجمالية</div>
-    <div style="font-size:28px; font-weight:900; color:${cd.pct>=0.75?'var(--emerald)':cd.pct>=0.6?'var(--gold)':'var(--red)'};">${(cd.pct*100).toFixed(1)}%</div>
-    <div style="font-size:11px; color:var(--muted);">${cd.match} مطابق / ${cd.nomatch} غير مطابق / ${cd.na} غير منطبق</div>
+    <div style="font-size:30px; font-weight:900; color:${cd.pct>=0.75?'var(--emerald)':cd.pct>=0.6?'var(--gold)':'var(--red)'};">${(cd.pct*100).toFixed(1)}%</div>
+    <div style="font-size:11px; color:var(--muted);">${cd.match} مطابق / ${cd.nomatch} غير مطابق / ${cd.na} لا يُقدّم الخدمة</div>
   </div>`;
 
   for (const d of DEPT_ORDER) {
@@ -1093,19 +1357,19 @@ function showCenterDetail(centerName) {
     const items = byDept[d];
     const m = items.filter(x=>x.s==='مطابق').length;
     const n = items.filter(x=>x.s==='غير مطابق').length;
-    const na = items.filter(x=>x.s==='غير منطبق').length;
+    const na = items.filter(x=>x.s==='لا يُقدّم الخدمة').length;
     const applicable = m + n;
     const pct = applicable > 0 ? (m/applicable*100).toFixed(0) : '—';
-    html += `<div style="margin-bottom:14px;">
-      <div style="font-size:13px; font-weight:700; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;">
+    html += `<div style="margin-bottom:16px;">
+      <div style="font-size:13px; font-weight:800; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;">
         <span>${d}</span>
-        <span style="color:${applicable>0&&m/applicable>=0.75?'var(--emerald)':'var(--gold)'};">${pct === '—' ? 'غير مفعل' : pct+'%'}</span>
+        <span style="color:${applicable>0&&m/applicable>=0.75?'var(--emerald)':'var(--gold)'};">${pct === '—' ? 'لا يُقدّم الخدمة' : pct+'%'}</span>
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:6px;">`;
     for (const it of items) {
       const cls = it.s==='مطابق'?'sb-match':it.s==='غير مطابق'?'sb-nomatch':'sb-na';
-      const icon = it.s==='مطابق'?'✓':it.s==='غير مطابق'?'✗':'—';
-      html += `<span class="status-badge ${cls}" style="font-size:11px; padding:5px 10px;">${icon} ${it.i}</span>`;
+      const mark = it.s==='مطابق'?'✓':it.s==='غير مطابق'?'✗':'—';
+      html += `<span class="status-badge ${cls}" style="font-size:11px; padding:5px 10px;">${mark} ${it.i}</span>`;
     }
     html += '</div></div>';
   }
@@ -1119,7 +1383,7 @@ function closeCenterDetail() {
 }
 
 /* ================================================================
-   TAB 3: ITEMS
+   ITEMS TAB
 ================================================================ */
 function renderItemsTab() {
   const depts = state.activeData.depts;
@@ -1132,22 +1396,22 @@ function renderItemsTab() {
   const items = Object.entries(state.activeData.item)
     .filter(([_, m]) => !state.deptFilter || m.dept === state.deptFilter)
     .map(([name, m]) => ({ name, ...m }))
-    .sort((a,b) => a.pct - b.pct); // Show worst first
+    .sort((a,b) => a.pct - b.pct);
 
   let html = '';
   for (const it of items) {
     const pct = it.applicable > 0 ? (it.pct * 100).toFixed(0) : '—';
     const color = it.pct >= 0.75 ? 'var(--emerald)' : it.pct >= 0.5 ? 'var(--gold)' : 'var(--red)';
     html += `<div class="item-card">
-      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-        <span style="font-size:10px; color:var(--muted);">${it.dept}</span>
-        <span style="font-size:16px; font-weight:900; color:${color};">${pct}${pct!=='—'?'%':''}</span>
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px; align-items:center;">
+        <span style="font-size:10px; color:var(--muted); font-weight:600;">${it.dept}</span>
+        <span style="font-size:18px; font-weight:900; color:${color};">${pct}${pct!=='—'?'%':''}</span>
       </div>
       <div class="item-title">${it.name}</div>
       <div class="item-stats">
-        <span class="item-pill pill-g">✓ ${it.match}</span>
-        <span class="item-pill pill-r">✗ ${it.nomatch}</span>
-        ${it.na > 0 ? `<span class="item-pill pill-n">— ${it.na}</span>` : ''}
+        <span class="item-pill pill-g">مطابق ${it.match}</span>
+        <span class="item-pill pill-r">غير مطابق ${it.nomatch}</span>
+        ${it.na > 0 ? `<span class="item-pill pill-n">مستثنى ${it.na}</span>` : ''}
       </div>
     </div>`;
   }
@@ -1160,7 +1424,7 @@ function filterDept(d) {
 }
 
 /* ================================================================
-   TAB 4: COMPARE
+   COMPARE TAB
 ================================================================ */
 function renderCompare() {
   const a = document.getElementById('compareA').value;
@@ -1168,15 +1432,13 @@ function renderCompare() {
   if (!a || !b || !state.rounds[a] || !state.rounds[b]) return;
 
   if (a === b) {
-    document.getElementById('compareResult').innerHTML = '<div class="empty-state">اختر جولتين مختلفتين للمقارنة.</div>';
+    document.getElementById('compareResult').innerHTML = '<div class="empty-state">اختر زيارتين مختلفتين للمقارنة.</div>';
     return;
   }
 
   const ma = computeMetrics(state.rounds[a].records);
   const mb = computeMetrics(state.rounds[b].records);
   const dPct = (mb.totals.pct - ma.totals.pct) * 100;
-  const dMatch = mb.totals.match - ma.totals.match;
-  const dNomatch = mb.totals.nomatch - ma.totals.nomatch;
 
   const arrow = dPct > 0.5 ? '▲' : dPct < -0.5 ? '▼' : '—';
   const cls = dPct > 0.5 ? 'trend-up' : dPct < -0.5 ? 'trend-down' : 'trend-same';
@@ -1191,12 +1453,12 @@ function renderCompare() {
       <div class="compare-title">${state.rounds[b].name}</div>
       <div class="compare-val" style="color:var(--emerald);">${(mb.totals.pct*100).toFixed(1)}%</div>
       <div style="font-size:11px; color:var(--muted); margin-top:4px;">${mb.totals.match} مطابق / ${mb.totals.nomatch} غير مطابق</div>
-      <div class="delta-pill ${cls}" style="background:${dPct>0.5?'var(--emerald-dim)':dPct<-0.5?'var(--red-dim)':'rgba(120,120,120,0.2)'};">${arrow} ${Math.abs(dPct).toFixed(1)}%</div>
+      <div class="delta-pill ${cls}">${arrow} ${Math.abs(dPct).toFixed(1)}%</div>
     </div>
   </div>
   <div style="margin-top:20px;">
-    <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:10px;">التغير حسب الإدارة</div>
-    <table class="center-detail-table">
+    <div style="font-size:12px; font-weight:800; color:var(--white); margin-bottom:10px;">التغير حسب الإدارة</div>
+    <div style="overflow-x:auto;"><table class="center-detail-table">
       <thead><tr><th>الإدارة</th><th>${state.rounds[a].name}</th><th>${state.rounds[b].name}</th><th>الفرق</th></tr></thead><tbody>`;
 
   const allDepts = new Set([...ma.depts, ...mb.depts]);
@@ -1207,14 +1469,108 @@ function renderCompare() {
     const diff = pb - pa;
     const c = diff > 0.5 ? 'var(--emerald)' : diff < -0.5 ? 'var(--red)' : 'var(--muted)';
     const ar = diff > 0.5 ? '▲' : diff < -0.5 ? '▼' : '—';
-    html += `<tr><td>${d}</td><td>${pa.toFixed(1)}%</td><td>${pb.toFixed(1)}%</td><td style="color:${c}; font-weight:700;">${ar} ${Math.abs(diff).toFixed(1)}%</td></tr>`;
+    html += `<tr><td>${d}</td><td>${pa.toFixed(1)}%</td><td>${pb.toFixed(1)}%</td><td style="color:${c}; font-weight:800;">${ar} ${Math.abs(diff).toFixed(1)}%</td></tr>`;
   }
-  html += '</tbody></table></div>';
+  html += '</tbody></table></div></div>';
   document.getElementById('compareResult').innerHTML = html;
 }
 
 /* ================================================================
-   ARCHIVE MODAL
+   TRACKING TAB - track single center over time
+================================================================ */
+function renderTracking() {
+  const center = document.getElementById('trackCenter').value;
+  const el = document.getElementById('trackingResult');
+  if (!center) {
+    el.innerHTML = '<div class="empty-state">اختر مركزاً لعرض تطور أدائه عبر الزيارات.</div>';
+    return;
+  }
+
+  // Collect all rounds that have this center
+  const history = [];
+  const sorted = Object.values(state.rounds).sort((a,b) => {
+    if (a.isOriginal) return -1; if (b.isOriginal) return 1;
+    return (a.date||'').localeCompare(b.date||'');
+  });
+
+  for (const r of sorted) {
+    const m = computeMetrics(r.records);
+    if (m.center[center]) {
+      history.push({
+        name: r.name,
+        date: r.date,
+        pct: m.center[center].pct,
+        match: m.center[center].match,
+        nomatch: m.center[center].nomatch,
+        na: m.center[center].na,
+        byDept: m.center[center].byDept
+      });
+    }
+  }
+
+  if (history.length === 0) {
+    el.innerHTML = '<div class="empty-state">لا توجد بيانات لهذا المركز.</div>';
+    return;
+  }
+
+  // Trend
+  let trendHtml = '';
+  if (history.length > 1) {
+    const first = history[0].pct * 100;
+    const last = history[history.length-1].pct * 100;
+    const diff = last - first;
+    const cls = diff > 0.5 ? 'trend-up' : diff < -0.5 ? 'trend-down' : 'trend-same';
+    const ar = diff > 0.5 ? '▲' : diff < -0.5 ? '▼' : '—';
+    trendHtml = `<div class="delta-pill ${cls}" style="margin-bottom:14px;">${ar} ${Math.abs(diff).toFixed(1)}% منذ الزيارة الأولى</div>`;
+  }
+
+  // Simple SVG line chart
+  const w = 700, h = 180, pad = 40;
+  let chartHtml = '';
+  if (history.length > 1) {
+    const max = 100, min = 0;
+    const xs = history.map((_, i) => pad + i * ((w - 2*pad) / (history.length - 1)));
+    const ys = history.map(h => pad + (1 - (h.pct*100 - min)/(max-min)) * (180 - 2*pad));
+    const path = xs.map((x, i) => (i===0?'M':'L') + x + ',' + ys[i]).join(' ');
+    const targetY = pad + (1 - (90 - min)/(max-min)) * (180 - 2*pad);
+
+    chartHtml = `<svg width="100%" height="180" viewBox="0 0 ${w} ${h}" style="direction:ltr; background:rgba(255,255,255,0.02); border-radius:10px;">
+      <!-- Target line 90% -->
+      <line x1="${pad}" y1="${targetY}" x2="${w-pad}" y2="${targetY}" stroke="rgba(240,180,41,0.4)" stroke-width="1" stroke-dasharray="4 4"/>
+      <text x="${w-pad+4}" y="${targetY+4}" font-size="10" fill="var(--gold)">90%</text>
+      <!-- Y labels -->
+      <text x="${pad-10}" y="${pad+4}" font-size="10" fill="var(--muted)" text-anchor="end">100%</text>
+      <text x="${pad-10}" y="${h-pad+4}" font-size="10" fill="var(--muted)" text-anchor="end">0%</text>
+      <!-- Line -->
+      <path d="${path}" fill="none" stroke="var(--emerald)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Points -->
+      ${xs.map((x, i) => `<circle cx="${x}" cy="${ys[i]}" r="5" fill="var(--emerald)" stroke="#0a1628" stroke-width="2"/>
+        <text x="${x}" y="${ys[i]-10}" font-size="11" font-weight="900" fill="#fff" text-anchor="middle">${(history[i].pct*100).toFixed(0)}%</text>
+        <text x="${x}" y="${h-pad+18}" font-size="9" fill="var(--muted)" text-anchor="middle">${history[i].name.length > 15 ? history[i].name.slice(0,14)+'..' : history[i].name}</text>`).join('')}
+    </svg>`;
+  }
+
+  let histHtml = `<table class="center-detail-table"><thead><tr><th>الزيارة</th><th>التاريخ</th><th>مطابق</th><th>غير مطابق</th><th>النسبة</th></tr></thead><tbody>`;
+  for (const h of history) {
+    histHtml += `<tr>
+      <td style="font-weight:700;">${h.name}</td>
+      <td>${h.date||'—'}</td>
+      <td style="color:var(--emerald); font-weight:700;">${h.match}</td>
+      <td style="color:var(--red); font-weight:700;">${h.nomatch}</td>
+      <td style="font-weight:900;">${(h.pct*100).toFixed(1)}%</td>
+    </tr>`;
+  }
+  histHtml += '</tbody></table>';
+
+  el.innerHTML = `
+    ${trendHtml}
+    ${history.length > 1 ? '<div style="margin-bottom:16px;">'+chartHtml+'</div>' : '<div class="empty-state" style="padding:14px;">زيارة واحدة فقط — ارفع زيارات إضافية لرؤية التطور.</div>'}
+    <div style="overflow-x:auto;">${histHtml}</div>
+  `;
+}
+
+/* ================================================================
+   ARCHIVE
 ================================================================ */
 function renderArchive() {
   const el = document.getElementById('archiveList');
@@ -1223,7 +1579,7 @@ function renderArchive() {
     return (b.date||'').localeCompare(a.date||'');
   });
   if (rounds.length === 0) {
-    el.innerHTML = '<div class="empty-state">لا توجد جولات محفوظة.</div>';
+    el.innerHTML = '<div class="empty-state">لا توجد زيارات محفوظة.</div>';
     return;
   }
   let html = '';
@@ -1231,7 +1587,7 @@ function renderArchive() {
     const m = computeMetrics(r.records);
     html += `<div class="archive-item">
       <div class="archive-info">
-        <div class="archive-name">${r.name} ${r.isOriginal?'<span style="font-size:9px; background:var(--gold-dim); color:var(--gold); padding:1px 6px; border-radius:8px; border:1px solid var(--gold); margin-right:6px;">الأصلية</span>':''}</div>
+        <div class="archive-name">${r.name} ${r.isOriginal?'<span style="font-size:9px; background:var(--gold-dim); color:var(--gold); padding:2px 7px; border-radius:8px; border:1px solid var(--gold); margin-right:6px; font-weight:700;">أصلية</span>':''}</div>
         <div class="archive-meta">${r.date || '—'} • ${m.centers.length} مركز • نسبة ${(m.totals.pct*100).toFixed(1)}%</div>
       </div>
       <div class="archive-actions">
@@ -1251,18 +1607,26 @@ function switchRound(id) {
 }
 
 /* ================================================================
-   UPLOAD HANDLING
+   UPLOAD
 ================================================================ */
 function openUploadModal() {
   document.getElementById('roundName').value = '';
   document.getElementById('roundDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('uploadModal').classList.add('active');
   window._uploadedFile = null;
+  document.getElementById('uploadArea').innerHTML = `
+    <div class="upload-icon">+</div>
+    <div class="upload-text">اضغط هنا أو اسحب ملف Excel</div>
+    <div class="upload-sub">xlsx أو xls</div>`;
 }
 
 function openArchiveModal() {
   renderArchive();
   document.getElementById('archiveModal').classList.add('active');
+}
+
+function openExportModal() {
+  document.getElementById('exportModal').classList.add('active');
 }
 
 function closeModal(id) {
@@ -1286,7 +1650,7 @@ document.getElementById('fileInput').onchange = (e) => {
 function handleFileSelect(file) {
   window._uploadedFile = file;
   document.getElementById('uploadArea').innerHTML = `
-    <div class="upload-icon">✓</div>
+    <div class="upload-icon" style="color:var(--emerald);">✓</div>
     <div class="upload-text" style="color:var(--emerald);">${file.name}</div>
     <div class="upload-sub">${(file.size/1024).toFixed(1)} KB — جاهز للحفظ</div>`;
 }
@@ -1295,7 +1659,7 @@ document.getElementById('btnConfirmUpload').onclick = async () => {
   const name = document.getElementById('roundName').value.trim();
   const date = document.getElementById('roundDate').value;
   const file = window._uploadedFile;
-  if (!name) { toast('اكتب اسم الجولة أولاً', 'error'); return; }
+  if (!name) { toast('اكتب اسم الزيارة أولاً', 'error'); return; }
   if (!file) { toast('اختر ملف Excel', 'error'); return; }
 
   try {
@@ -1314,7 +1678,7 @@ document.getElementById('btnConfirmUpload').onclick = async () => {
 
     closeModal('uploadModal');
     renderAll();
-    toast(`تم حفظ الجولة (${records.length} سجل)`, 'success');
+    toast(`تم حفظ الزيارة (${records.length} سجل)`, 'success');
   } catch (err) {
     console.error(err);
     toast('فشل قراءة الملف — تأكد من الصيغة', 'error');
@@ -1324,13 +1688,11 @@ document.getElementById('btnConfirmUpload').onclick = async () => {
 async function parseExcelFile(file) {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: 'array' });
-  // Try to find the main sheet
   let sheetName = wb.SheetNames.find(n => n.includes('نموذج') || n.includes('جولات')) || wb.SheetNames[0];
   const ws = wb.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json(ws, { defval: null });
   if (!rows.length) return [];
 
-  // Find the center column
   const cols = Object.keys(rows[0]);
   const centerCol = cols.find(c => c.includes('المركز') || c.includes('مركز'));
   if (!centerCol) throw new Error('no center column');
@@ -1356,6 +1718,62 @@ async function parseExcelFile(file) {
 }
 
 /* ================================================================
+   EXPORT - PDF & PNG
+================================================================ */
+async function exportPNG() {
+  closeModal('exportModal');
+  toast('جاري التحضير...', 'info');
+  const root = document.getElementById('pageRoot');
+  root.classList.add('pdf-mode');
+  try {
+    const canvas = await html2canvas(root, {
+      backgroundColor: '#0a1628',
+      scale: 2,
+      useCORS: true
+    });
+    const link = document.createElement('a');
+    link.download = `داشبورد_الجولات_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('تم تصدير الصورة', 'success');
+  } catch(e) {
+    console.error(e);
+    toast('فشل التصدير', 'error');
+  } finally {
+    root.classList.remove('pdf-mode');
+  }
+}
+
+async function exportPDF() {
+  closeModal('exportModal');
+  toast('جاري التحضير...', 'info');
+  const root = document.getElementById('pageRoot');
+  root.classList.add('pdf-mode');
+  try {
+    const canvas = await html2canvas(root, {
+      backgroundColor: '#0a1628',
+      scale: 2,
+      useCORS: true
+    });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      unit: 'px',
+      format: [canvas.width, canvas.height]
+    });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save(`داشبورد_الجولات_${new Date().toISOString().slice(0,10)}.pdf`);
+    toast('تم تصدير PDF', 'success');
+  } catch(e) {
+    console.error(e);
+    toast('فشل التصدير', 'error');
+  } finally {
+    root.classList.remove('pdf-mode');
+  }
+}
+
+/* ================================================================
    TABS
 ================================================================ */
 function switchTab(e, id) {
@@ -1367,18 +1785,19 @@ function switchTab(e, id) {
   if (id === 'tab-centers') renderCentersList();
   if (id === 'tab-items') renderItemsTab();
   if (id === 'tab-compare') {
-    // Default: pick first two different
     const ids = Object.keys(state.rounds);
-    if (ids.length >= 2) {
+    if (ids.length >= 2 && !document.getElementById('compareA').value) {
       document.getElementById('compareA').value = ids[0];
       document.getElementById('compareB').value = ids[1];
     }
     renderCompare();
   }
+  if (id === 'tab-tracking') renderTracking();
 }
 
 document.getElementById('compareA').onchange = renderCompare;
 document.getElementById('compareB').onchange = renderCompare;
+document.getElementById('trackCenter').onchange = renderTracking;
 
 /* ================================================================
    TOAST
@@ -1397,22 +1816,19 @@ function toast(msg, type) {
 function renderAll() {
   renderRoundSelector();
   renderKpis();
+  renderAlerts();
   renderDeptBars();
   renderRankings();
   renderDonut();
   renderHeatmap();
-  // Also refresh tabs if they're active
   if (document.getElementById('tab-centers').classList.contains('active')) renderCentersList();
   if (document.getElementById('tab-items').classList.contains('active')) renderItemsTab();
   if (document.getElementById('tab-compare').classList.contains('active')) renderCompare();
+  if (document.getElementById('tab-tracking').classList.contains('active')) renderTracking();
 }
 
-/* ================================================================
-   INIT
-================================================================ */
 initState();
 renderAll();
-
 </script>
 
 </body>
