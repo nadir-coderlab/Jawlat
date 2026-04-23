@@ -605,10 +605,10 @@ color: #ffffff; font-weight: 600;
 
 <div class="modal-backdrop" id="exportModal">
   <div class="modal">
-    <div class="modal-title">تصدير التقرير</div>
-    <div class="modal-sub">اختر صيغة التصدير المناسبة للمشاركة.</div>
+    <div class="modal-title">تصدير خريطة الأداء</div>
+    <div class="modal-sub">تصدير خريطة أداء المراكز بألوان واضحة وخلفية بيضاء مناسبة للطباعة والمشاركة في التقارير الرسمية.</div>
     <div class="modal-actions" style="flex-direction:column; gap:10px;">
-      <button class="btn btn-primary" onclick="exportPDF()" style="width:100%; justify-content:center;">تصدير PDF كامل</button>
+      <button class="btn btn-primary" onclick="exportPDF()" style="width:100%; justify-content:center;">تصدير PDF</button>
       <button class="btn btn-outline" onclick="exportPNG()" style="width:100%; justify-content:center;">تصدير صورة PNG</button>
       <button class="btn btn-outline" onclick="closeModal('exportModal')" style="width:100%; justify-content:center;">إلغاء</button>
     </div>
@@ -849,6 +849,8 @@ const SERVICE_RULES = {
   'xray_centers': ['الهجرة', 'البدراني', 'الدويّمة', 'الدعيثة'],
   // الماموغرام متوفر فقط في:
   'mammo_centers': ['الدويّمة', 'الدعيثة', 'العزيزية', 'باقدو'],
+  // العلاج الطبيعي متوفر فقط في:
+  'pt_centers': ['باقدو', 'شوران', 'قبليتين بني سلمة'],
 };
 
 // Items that follow X-Ray rule
@@ -861,14 +863,20 @@ const XRAY_ITEMS = new Set([
 const MAMMO_ITEMS = new Set([
   'يوجد جهاز ماموقرام للكشف عن سرطان الثدي',
 ]);
+const PT_ITEMS = new Set([
+  'تتوفر عيادة للعلاج الطبيعي',
+  'يتوفر كادر - العلاج الطبيعي',
+]);
 
 function applyServiceRules(records) {
-  // For each record, if it's an xray/mammo item and center not in allowed list, mark as "لا يُقدّم الخدمة"
   return records.map(r => {
     if (XRAY_ITEMS.has(r.i) && !SERVICE_RULES.xray_centers.includes(r.c)) {
       return { ...r, s: 'لا يُقدّم الخدمة' };
     }
     if (MAMMO_ITEMS.has(r.i) && !SERVICE_RULES.mammo_centers.includes(r.c)) {
+      return { ...r, s: 'لا يُقدّم الخدمة' };
+    }
+    if (PT_ITEMS.has(r.i) && !SERVICE_RULES.pt_centers.includes(r.c)) {
       return { ...r, s: 'لا يُقدّم الخدمة' };
     }
     return r;
@@ -1736,21 +1744,120 @@ async function parseExcelFile(file) {
 }
 
 /* ================================================================
-   EXPORT - PDF & PNG
+   EXPORT - Heatmap only, light theme for clarity
 ================================================================ */
+function buildExportHeatmap() {
+  const depts = state.activeData.depts;
+  const centers = state.activeData.centers
+    .map(c => ({ name: c, pct: state.activeData.center[c].pct }))
+    .sort((a,b) => b.pct - a.pct)
+    .map(x => x.name);
+
+  const roundName = state.rounds[state.currentRoundId].name;
+  const roundDate = state.rounds[state.currentRoundId].date || '';
+  const t = state.activeData.totals;
+  const overallPct = (t.pct * 100).toFixed(1);
+
+  function cellStyleLight(pct, applicable) {
+    if (applicable === 0) return 'background:#E5E7EB;color:#6B7280;font-style:italic;';
+    if (pct >= 0.9) return 'background:#059669;color:#FFFFFF;';
+    if (pct >= 0.75) return 'background:#10B981;color:#FFFFFF;';
+    if (pct >= 0.6) return 'background:#F59E0B;color:#FFFFFF;';
+    if (pct >= 0.45) return 'background:#F97316;color:#FFFFFF;';
+    return 'background:#DC2626;color:#FFFFFF;';
+  }
+
+  let rows = '';
+  for (const c of centers) {
+    const cd = state.activeData.center[c];
+    let r = `<tr>
+      <td style="text-align:right;padding:10px 14px;font-weight:700;font-size:13px;color:#0F2C59;background:#F9FAFB;border:1px solid #E5E7EB;">${c}</td>`;
+    for (const d of depts) {
+      const bd = cd.byDept[d];
+      if (!bd || (bd.m + bd.n === 0)) {
+        r += `<td style="padding:10px 8px;text-align:center;font-size:11px;font-weight:700;border:1px solid #E5E7EB;background:#E5E7EB;color:#6B7280;font-style:italic;">—</td>`;
+      } else {
+        const p = bd.m / (bd.m + bd.n);
+        const style = cellStyleLight(p, bd.m + bd.n);
+        r += `<td style="padding:10px 8px;text-align:center;font-size:12px;font-weight:800;border:1px solid #E5E7EB;${style}">${(p*100).toFixed(0)}%</td>`;
+      }
+    }
+    const totalStyle = cellStyleLight(cd.pct, cd.applicable);
+    r += `<td style="padding:10px 10px;text-align:center;font-size:13px;font-weight:900;border:1px solid #E5E7EB;${totalStyle}">${(cd.pct*100).toFixed(0)}%</td>`;
+    r += '</tr>';
+    rows += r;
+  }
+
+  let headerCols = '';
+  for (const d of depts) {
+    headerCols += `<th style="padding:12px 8px;text-align:center;font-size:12px;font-weight:800;background:#0F2C59;color:#FFFFFF;border:1px solid #0F2C59;">${d}</th>`;
+  }
+
+  return `<div id="exportRoot" style="background:#FFFFFF;padding:30px 36px;font-family:'Cairo',sans-serif;direction:rtl;width:1100px;">
+    <div style="border-bottom:3px solid #0F2C59;padding-bottom:14px;margin-bottom:8px;">
+      <div style="font-size:12px;color:#1A8A7C;font-weight:800;letter-spacing:2px;margin-bottom:4px;">الإدارة التنفيذية للخدمات الصحية المساندة</div>
+      <div style="font-size:24px;font-weight:900;color:#0F2C59;margin-bottom:4px;">خريطة أداء المراكز الصحية</div>
+      <div style="font-size:13px;color:#4A5568;font-weight:600;">${roundName}${roundDate ? ' — ' + roundDate : ''}</div>
+    </div>
+    <div style="display:flex;gap:20px;margin:16px 0 20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:140px;padding:12px 16px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;">
+        <div style="font-size:11px;color:#0369A1;font-weight:700;">عدد المراكز</div>
+        <div style="font-size:24px;font-weight:900;color:#0369A1;">${state.activeData.centers.length}</div>
+      </div>
+      <div style="flex:1;min-width:140px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;">
+        <div style="font-size:11px;color:#059669;font-weight:700;">عناصر مطابقة</div>
+        <div style="font-size:24px;font-weight:900;color:#059669;">${t.match}</div>
+      </div>
+      <div style="flex:1;min-width:140px;padding:12px 16px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;">
+        <div style="font-size:11px;color:#DC2626;font-weight:700;">غير مطابق</div>
+        <div style="font-size:24px;font-weight:900;color:#DC2626;">${t.nomatch}</div>
+      </div>
+      <div style="flex:1;min-width:140px;padding:12px 16px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;">
+        <div style="font-size:11px;color:#D97706;font-weight:700;">نسبة المطابقة</div>
+        <div style="font-size:24px;font-weight:900;color:#D97706;">${overallPct}%</div>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-family:'Cairo',sans-serif;">
+      <thead>
+        <tr>
+          <th style="padding:12px 14px;text-align:right;font-size:12px;font-weight:800;background:#0F2C59;color:#FFFFFF;border:1px solid #0F2C59;min-width:140px;">المركز</th>
+          ${headerCols}
+          <th style="padding:12px 10px;text-align:center;font-size:12px;font-weight:800;background:#0F2C59;color:#FFFFFF;border:1px solid #0F2C59;">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:center;font-size:11px;color:#4A5568;">
+      <span style="font-weight:700;">دلالة الألوان:</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:16px;height:16px;background:#059669;border-radius:3px;"></span>90%+ ممتاز</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:16px;height:16px;background:#10B981;border-radius:3px;"></span>75-89% جيد</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:16px;height:16px;background:#F59E0B;border-radius:3px;"></span>60-74% متوسط</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:16px;height:16px;background:#F97316;border-radius:3px;"></span>45-59% ضعيف</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:16px;height:16px;background:#DC2626;border-radius:3px;"></span>أقل من 45% حرج</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:16px;height:16px;background:#E5E7EB;border-radius:3px;border:1px solid #D1D5DB;"></span>لا يُقدّم الخدمة</span>
+    </div>
+    <div style="margin-top:18px;padding-top:10px;border-top:1px solid #E5E7EB;font-size:10px;color:#9CA3AF;text-align:center;">
+      تم الإنشاء ${new Date().toLocaleDateString('ar-SA')} — تجمع المدينة المنورة الصحي
+    </div>
+  </div>`;
+}
+
 async function exportPNG() {
   closeModal('exportModal');
   toast('جاري التحضير...', 'info');
-  const root = document.getElementById('pageRoot');
-  root.classList.add('pdf-mode');
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:-10000px;right:0;';
+  container.innerHTML = buildExportHeatmap();
+  document.body.appendChild(container);
   try {
-    const canvas = await html2canvas(root, {
-      backgroundColor: '#0a1628',
+    await new Promise(r => setTimeout(r, 150));
+    const canvas = await html2canvas(container.firstElementChild, {
+      backgroundColor: '#FFFFFF',
       scale: 2,
       useCORS: true
     });
     const link = document.createElement('a');
-    link.download = `داشبورد_الجولات_${new Date().toISOString().slice(0,10)}.png`;
+    link.download = `خريطة_أداء_المراكز_${new Date().toISOString().slice(0,10)}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     toast('تم تصدير الصورة', 'success');
@@ -1758,36 +1865,39 @@ async function exportPNG() {
     console.error(e);
     toast('فشل التصدير', 'error');
   } finally {
-    root.classList.remove('pdf-mode');
+    document.body.removeChild(container);
   }
 }
 
 async function exportPDF() {
   closeModal('exportModal');
   toast('جاري التحضير...', 'info');
-  const root = document.getElementById('pageRoot');
-  root.classList.add('pdf-mode');
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;top:-10000px;right:0;';
+  container.innerHTML = buildExportHeatmap();
+  document.body.appendChild(container);
   try {
-    const canvas = await html2canvas(root, {
-      backgroundColor: '#0a1628',
+    await new Promise(r => setTimeout(r, 150));
+    const canvas = await html2canvas(container.firstElementChild, {
+      backgroundColor: '#FFFFFF',
       scale: 2,
       useCORS: true
     });
     const imgData = canvas.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
-      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+      orientation: 'landscape',
       unit: 'px',
       format: [canvas.width, canvas.height]
     });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save(`داشبورد_الجولات_${new Date().toISOString().slice(0,10)}.pdf`);
+    pdf.save(`خريطة_أداء_المراكز_${new Date().toISOString().slice(0,10)}.pdf`);
     toast('تم تصدير PDF', 'success');
   } catch(e) {
     console.error(e);
     toast('فشل التصدير', 'error');
   } finally {
-    root.classList.remove('pdf-mode');
+    document.body.removeChild(container);
   }
 }
 
