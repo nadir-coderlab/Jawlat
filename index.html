@@ -3878,6 +3878,375 @@ body {
     border-radius: 8px;
 }
 
+/* === V2: Hero & Executive Summary === */
+.comp-hero {
+    position: relative;
+    background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4C1D95 100%);
+    border-radius: 14px;
+    padding: 32px 40px;
+    margin-bottom: 22px;
+    overflow: hidden;
+    border: 1px solid #6D28D9;
+}
+.comp-hero-bg {
+    position: absolute;
+    top: -50%; right: -10%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+    pointer-events: none;
+}
+.comp-hero-content { position: relative; z-index: 1; }
+.comp-hero-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.15);
+    color: #E9D5FF;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+}
+.comp-hero-title {
+    color: #FFFFFF;
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    line-height: 1.2;
+}
+.comp-hero-sub {
+    color: #C4B5FD;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 18px;
+    direction: ltr;
+    text-align: right;
+}
+.comp-hero-meta {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    color: #DDD6FE;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Executive summary */
+.comp-exec .exec-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    margin-bottom: 22px;
+    align-items: center;
+}
+.exec-main-kpi {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.exec-circle {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.exec-circle-inner {
+    width: 100px; height: 100px;
+    background: #1E293B;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+}
+.exec-circle-value {
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+}
+.exec-circle-label {
+    font-size: 11px;
+    color: #94A3B8;
+    margin-top: 4px;
+    font-weight: 600;
+}
+.exec-main-info { flex: 1; }
+.exec-main-title {
+    color: #F1F5F9;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.exec-main-desc {
+    color: #94A3B8;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.exec-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.exec-stage { display: grid; grid-template-columns: 1fr 60px; gap: 10px; align-items: center; }
+.exec-stage-head {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+}
+.exec-stage-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+}
+.exec-stage-name {
+    color: #E2E8F0;
+    font-size: 13px;
+    font-weight: 700;
+    flex: 1;
+}
+.exec-stage-target {
+    color: #94A3B8;
+    font-size: 11px;
+    background: #0F172A;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.exec-stage-bar {
+    grid-column: 1;
+    height: 8px;
+    background: #0F172A;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.exec-stage-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s;
+}
+.exec-stage-pct {
+    grid-column: 2;
+    font-size: 14px;
+    font-weight: 800;
+    color: #F1F5F9;
+    text-align: left;
+    direction: ltr;
+}
+.exec-numbers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding-top: 18px;
+    border-top: 1px solid #334155;
+}
+.exec-num {
+    text-align: center;
+    background: #0F172A;
+    border: 1px solid #334155;
+    padding: 12px 8px;
+    border-radius: 8px;
+}
+.exec-num-label {
+    font-size: 11px;
+    color: #94A3B8;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+.exec-num-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #F1F5F9;
+}
+
+/* Stage section with color */
+.stage-section {
+    border-right: 4px solid var(--stage-color, #8B5CF6) !important;
+}
+.stage-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #334155;
+}
+.stage-icon-big {
+    font-size: 32px;
+    width: 56px; height: 56px;
+    background: var(--stage-color, #8B5CF6);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.stage-title-block { flex: 1; }
+.stage-title-block h4 {
+    margin: 0 0 4px;
+    padding: 0;
+    border: none;
+    color: #F1F5F9;
+    font-size: 18px;
+}
+.stage-title-block h4::before { display: none; }
+.stage-sub {
+    color: #94A3B8;
+    font-size: 13px;
+    margin: 0;
+}
+.comp-sub-title {
+    color: #CBD5E1;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 14px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+}
+.comp-section-desc {
+    color: #94A3B8;
+    font-size: 12.5px;
+    margin: 0 0 12px;
+    line-height: 1.6;
+}
+
+/* Heatmap insights */
+.heatmap-insights {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 14px 0 18px;
+}
+.hm-insight {
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: center;
+}
+.hm-insight-label {
+    font-size: 11px;
+    color: #94A3B8;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.hm-insight-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #F1F5F9;
+    line-height: 1;
+}
+.hm-insight-sub {
+    font-size: 11px;
+    color: #64748B;
+    margin-top: 4px;
+}
+.heatmap-legend {
+    margin-top: 12px;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    color: #94A3B8;
+}
+.heatmap-legend .lg-dot {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+.heatmap-legend .lg-dot.lg-empty {
+    background: #1E293B;
+    border: 1px dashed #334155;
+}
+
+/* Summary compliance table */
+.comp-table-summary thead th { background: #312E81 !important; color: #FFF; }
+.comp-table-summary tbody td { padding: 12px; font-size: 13px; }
+.stage-icon { display: inline-block; margin-left: 6px; font-size: 16px; }
+.staff-cell {
+    direction: rtl;
+    font-weight: 600;
+    color: #F1F5F9;
+}
+
+/* Footer */
+.comp-footer {
+    background: #0F172A;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px 22px;
+    text-align: center;
+    margin-top: 22px;
+    color: #94A3B8;
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* PDF light-mode override */
+.pdf-light-mode * { color: #1A2433 !important; }
+.pdf-light-mode .comp-section {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-right: 4px solid var(--stage-color, #8B5CF6) !important;
+}
+.pdf-light-mode .comp-section h4 { color: #063A58 !important; border-bottom-color: #E2E8F0 !important; }
+.pdf-light-mode .comp-section h4::before { background: #8B5CF6; }
+.pdf-light-mode .stage-title-block h4 { color: #063A58 !important; }
+.pdf-light-mode .stage-sub { color: #4A5A6B !important; }
+.pdf-light-mode .comp-hero {
+    background: linear-gradient(135deg, #063A58 0%, #0E5C7E 100%) !important;
+    border: none !important;
+}
+.pdf-light-mode .comp-hero * { color: #FFFFFF !important; }
+.pdf-light-mode .comp-hero-tag { background: rgba(255,255,255,0.2) !important; }
+.pdf-light-mode .comp-hero-sub { color: #BFDBFE !important; }
+.pdf-light-mode .comp-hero-meta { color: #DBEAFE !important; }
+.pdf-light-mode .comp-kpi {
+    background: #F7FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+}
+.pdf-light-mode .comp-kpi .l { color: #6B7280 !important; }
+.pdf-light-mode .comp-kpi .v { color: #1A2433 !important; }
+.pdf-light-mode .comp-kpi .sub { color: #6B7280 !important; }
+.pdf-light-mode .comp-kpi.good .v { color: #047857 !important; }
+.pdf-light-mode .comp-kpi.warn .v { color: #B45309 !important; }
+.pdf-light-mode .comp-kpi.bad .v { color: #B91C1C !important; }
+.pdf-light-mode .comp-table thead th { background: #063A58 !important; color: #FFFFFF !important; }
+.pdf-light-mode .comp-table-summary thead th { background: #4C1D95 !important; color: #FFFFFF !important; }
+.pdf-light-mode .comp-table tbody tr:nth-child(even) { background: #F7FAFC !important; }
+.pdf-light-mode .comp-table tbody td { border-bottom-color: #E2E8F0 !important; color: #1A2433 !important; }
+.pdf-light-mode .comp-table .ok { color: #047857 !important; }
+.pdf-light-mode .comp-table .warn { color: #B45309 !important; }
+.pdf-light-mode .comp-table .bad { color: #B91C1C !important; }
+.pdf-light-mode .comp-heat .hh-corner { background: #334155 !important; color: #FFFFFF !important; }
+.pdf-light-mode .comp-heat .hh-name {
+    background: #F7FAFC !important;
+    color: #1A2433 !important;
+    border: 1px solid #E2E8F0 !important;
+}
+.pdf-light-mode .comp-heat .hh-cell.empty { background: #F7FAFC !important; border: 1px dashed #CBD5E0 !important; }
+.pdf-light-mode .exec-circle-inner { background: #F7FAFC !important; }
+.pdf-light-mode .exec-circle-label { color: #6B7280 !important; }
+.pdf-light-mode .exec-main-desc { color: #4A5A6B !important; }
+.pdf-light-mode .exec-stage-target { background: #F1F5F9 !important; color: #4A5A6B !important; }
+.pdf-light-mode .exec-stage-bar { background: #E2E8F0 !important; }
+.pdf-light-mode .exec-num {
+    background: #F7FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+}
+.pdf-light-mode .exec-num-label { color: #6B7280 !important; }
+.pdf-light-mode .hm-insight {
+    background: #F7FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+}
+.pdf-light-mode .hm-insight-label { color: #6B7280 !important; }
+.pdf-light-mode .hm-insight-sub { color: #6B7280 !important; }
+.pdf-light-mode .heatmap-legend { color: #4A5A6B !important; }
+.pdf-light-mode .heatmap-legend .lg-empty { background: #F7FAFC !important; border: 1px dashed #CBD5E0 !important; }
+.pdf-light-mode .comp-footer {
+    background: #F7FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+    color: #4A5A6B !important;
+}
+.pdf-light-mode .comp-sub-title { color: #1A2433 !important; }
+.pdf-light-mode .comp-section-desc { color: #4A5A6B !important; }
+.pdf-light-mode .staff-cell { color: #1A2433 !important; }
+
 /* معاينة السلايد - خلفية بشكل خانات (لإظهار الشفافية) */
 .hajj-preview-wrap {
     background:
@@ -7846,28 +8215,71 @@ async function readKpiDirectly(file) {
         return [];
     }
 
+    // اكتشاف ديناميكي للأعمدة من الـ headers في الصف 1
+    // يدعم صيغتين:
+    //   الصيغة 1 (المعتاد): A=Patient ID, B=episode_key, C=Patient Type, H=SampleID, M=Sample Status
+    //   الصيغة 2 (الملك فهد): A=MRN, B=Sample ID, C=OrderKey, G=Patient Type
+    const cols = {};
+    const headerMap = {
+        'patient id': 'patientId',
+        'mrn': 'patientId',
+        'episode_key': 'episodeKey',
+        'orderkey': 'episodeKey',
+        'patient type': 'patientType',
+        'sampleid': 'sampleId',
+        'sample id': 'sampleId',
+        'sample status': 'sampleStatus'
+    };
+
+    // نمسح الصف 1 وأول 30 عمود لتحديد المواقع
+    for (let c = 0; c < 50; c++) {
+        const colLetter = XLSX.utils.encode_col(c);
+        const cell = ws[colLetter + '1'];
+        if (!cell || cell.v == null) continue;
+        const h = String(cell.v).trim().toLowerCase();
+        const mapped = headerMap[h];
+        if (mapped && !cols[mapped]) {
+            cols[mapped] = colLetter;
+        }
+    }
+
+    console.log('[readKpiDirectly] Detected columns:', cols);
+
+    if (!cols.patientId || !cols.sampleId || !cols.patientType) {
+        console.error('[readKpiDirectly] Missing required columns. Found:', cols);
+        return [];
+    }
+
     const rows = [];
     for (let r = 2; r <= endRow; r++) {
-        const patientIdCell = ws['A' + r];
-        const episodeKeyCell = ws['B' + r];
-        const patientTypeCell = ws['C' + r];
-        const sampleIdCell = ws['H' + r];
-        const sampleStatusCell = ws['M' + r];
+        const get = (key) => {
+            if (!cols[key]) return null;
+            const cell = ws[cols[key] + r];
+            return cell ? cell.v : null;
+        };
 
-        const patientId = patientIdCell ? patientIdCell.v : null;
-        const episodeKey = episodeKeyCell ? episodeKeyCell.v : null;
-        const patientType = patientTypeCell ? patientTypeCell.v : null;
-        const sampleId = sampleIdCell ? sampleIdCell.v : null;
-        const sampleStatus = sampleStatusCell ? sampleStatusCell.v : null;
+        let patientId = get('patientId');
+        if (patientId != null) {
+            // ننظف الـ quotes ('806750' → 806750)
+            patientId = String(patientId).replace(/^['"]|['"]$/g, '').trim();
+        }
 
-        if (patientId == null && sampleId == null) continue;
+        let patientType = get('patientType');
+        if (patientType != null) {
+            patientType = String(patientType).replace(/^['"]|['"]$/g, '').trim();
+        }
+
+        const episodeKey = get('episodeKey');
+        const sampleId = get('sampleId');
+        const sampleStatus = get('sampleStatus');
+
+        if (!patientId && sampleId == null) continue;
         rows.push({ patientId, episodeKey, patientType, sampleId, sampleStatus });
     }
 
     console.log('[readKpiDirectly] Built rows:', rows.length);
     if (rows.length > 0) {
         console.log('[readKpiDirectly] First row:', rows[0]);
-        console.log('[readKpiDirectly] Last row:', rows[rows.length - 1]);
     }
     return rows;
 }
@@ -8021,26 +8433,152 @@ function computeHeatmap(monitorRows) {
 
 function renderComprehensiveAnalysis(R) {
     const container = document.getElementById('compContent');
-
-    const fmtMin = (m) => m.toFixed(1) + ' د';
-    const fmtPct = (p) => p.toFixed(0) + '%';
-    const rankClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const dateStr = new Date().toLocaleDateString('ar-SA-u-nu-arab');
 
     container.innerHTML = `
-        <div class="comp-hosp-header">
-            <h3>${R.info.ar}</h3>
-            <div class="sub">${R.info.en} · ${R.matched.toLocaleString()} عينة طوارئ مطابقة من ${R.erSamples.toLocaleString()} عينة فريدة</div>
+        <!-- Hero Header -->
+        <div class="comp-hero">
+            <div class="comp-hero-bg"></div>
+            <div class="comp-hero-content">
+                <div class="comp-hero-tag">تقرير تفصيلي شامل</div>
+                <h1 class="comp-hero-title">${R.info.ar}</h1>
+                <div class="comp-hero-sub">${R.info.en}</div>
+                <div class="comp-hero-meta">
+                    <span>📅 ${dateStr}</span>
+                    <span>🏥 تجمع المدينة المنورة الصحي</span>
+                    <span>🚑 عينات الطوارئ فقط</span>
+                </div>
+            </div>
         </div>
 
-        ${renderHeatmapSection(R.heatmap)}
-        ${R.promise ? renderPromiseSection(R.promise) : ''}
-        ${R.order ? renderStageSectionComp(R.order, 'تأخّر الأطباء — من الطلب إلى السحب', '🩺') : ''}
-        ${R.nursing ? renderStageSectionComp(R.nursing, 'تأخّر التمريض — من السحب إلى الإرسال', '💉') : ''}
-        ${R.lab ? renderStageSectionComp(R.lab, 'تأخّر المختبر — من الاستقبال إلى النتيجة', '🔬') : ''}
+        ${renderExecutiveSummary(R)}
+        ${renderOverallCompliance(R)}
+        ${renderHeatmapV2(R.heatmap)}
+        ${R.promise ? renderPromiseDetailed(R.promise) : ''}
+        ${R.order ? renderStageDetailed(R.order, 'order', 'تأخّر الأطباء في طلب العينة', 'من الطلب إلى السحب', '🩺', '#3B82F6') : ''}
+        ${R.nursing ? renderStageDetailed(R.nursing, 'nursing', 'تأخّر التمريض في إرسال العينة', 'من السحب إلى الإرسال للمختبر', '💉', '#EC4899') : ''}
+        ${R.lab ? renderStageDetailed(R.lab, 'lab', 'تأخّر فنيي المختبر في ظهور النتيجة', 'من الاستقبال إلى ظهور النتيجة', '🔬', '#10B981') : ''}
+        ${renderFooter(R)}
     `;
 }
 
-function renderHeatmapSection(hours) {
+// ============= 1. EXECUTIVE SUMMARY =============
+function renderExecutiveSummary(R) {
+    const stages = [];
+    if (R.order) stages.push({ name: 'الأطباء', pct: R.order.overallCompliance, target: '10د', color: '#3B82F6' });
+    if (R.nursing) stages.push({ name: 'التمريض', pct: R.nursing.overallCompliance, target: '10د', color: '#EC4899' });
+    if (R.lab) stages.push({ name: 'المختبر', pct: R.lab.overallCompliance, target: '40د', color: '#10B981' });
+
+    const overall = stages.length > 0 ? stages.reduce((s, x) => s + x.pct, 0) / stages.length : 0;
+    const overallColor = overall >= 90 ? '#10B981' : overall >= 70 ? '#F59E0B' : '#EF4444';
+
+    return `
+    <div class="comp-section comp-exec">
+        <h4>📊 الملخص التنفيذي</h4>
+        <div class="exec-grid">
+            <div class="exec-main-kpi">
+                <div class="exec-circle" style="background: conic-gradient(${overallColor} ${overall * 3.6}deg, #1E293B 0deg);">
+                    <div class="exec-circle-inner">
+                        <div class="exec-circle-value" style="color: ${overallColor};">${overall.toFixed(0)}%</div>
+                        <div class="exec-circle-label">الالتزام العام</div>
+                    </div>
+                </div>
+                <div class="exec-main-info">
+                    <div class="exec-main-title">مؤشر الأداء الموحّد</div>
+                    <div class="exec-main-desc">متوسط الالتزام بالأهداف الزمنية لجميع المراحل</div>
+                </div>
+            </div>
+            <div class="exec-stages">
+                ${stages.map(s => `
+                    <div class="exec-stage">
+                        <div class="exec-stage-head">
+                            <span class="exec-stage-dot" style="background:${s.color};"></span>
+                            <span class="exec-stage-name">${s.name}</span>
+                            <span class="exec-stage-target">${s.target}</span>
+                        </div>
+                        <div class="exec-stage-bar">
+                            <div class="exec-stage-fill" style="width:${s.pct}%; background:${s.color};"></div>
+                        </div>
+                        <div class="exec-stage-pct">${s.pct.toFixed(1)}%</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="exec-numbers">
+            <div class="exec-num">
+                <div class="exec-num-label">عينات الطوارئ في KPI</div>
+                <div class="exec-num-value">${R.erSamples.toLocaleString()}</div>
+            </div>
+            <div class="exec-num">
+                <div class="exec-num-label">العينات المطابقة في Monitor</div>
+                <div class="exec-num-value">${R.matched.toLocaleString()}</div>
+            </div>
+            <div class="exec-num">
+                <div class="exec-num-label">نسبة التطابق</div>
+                <div class="exec-num-value">${R.erSamples > 0 ? ((R.matched / R.erSamples) * 100).toFixed(1) : 0}%</div>
+            </div>
+            <div class="exec-num">
+                <div class="exec-num-label">الأطباء المشاركون</div>
+                <div class="exec-num-value">${R.promise ? R.promise.totalDoctors : '—'}</div>
+            </div>
+        </div>
+    </div>`;
+}
+
+// ============= 2. OVERALL COMPLIANCE TABLE =============
+function renderOverallCompliance(R) {
+    const rows = [];
+    if (R.order) rows.push({ stage: '١. من الطلب إلى السحب', staffLabel: 'الأطباء', icon: '🩺', target: 10, ...R.order });
+    if (R.nursing) rows.push({ stage: '٢. من السحب إلى الإرسال', staffLabel: 'التمريض', icon: '💉', target: 10, ...R.nursing });
+    if (R.lab) rows.push({ stage: '٣. من الاستقبال إلى النتيجة', staffLabel: 'المختبر', icon: '🔬', target: 40, ...R.lab });
+
+    if (rows.length === 0) return '';
+
+    const fmtMin = (m) => m.toFixed(1) + ' د';
+    const fmtPct = (p) => p.toFixed(1) + '%';
+    const clrTime = (m, t) => m <= t ? 'ok' : m <= t * 1.5 ? 'warn' : 'bad';
+    const clrPct = (p) => p >= 90 ? 'ok' : p >= 70 ? 'warn' : 'bad';
+
+    return `
+    <div class="comp-section">
+        <h4>📋 جدول الالتزام بالمؤشرات</h4>
+        <table class="comp-table comp-table-summary">
+            <thead><tr>
+                <th>المرحلة</th>
+                <th>المسؤول</th>
+                <th class="num">المستهدف</th>
+                <th class="num">عينات</th>
+                <th class="num">متأخرة</th>
+                <th class="num">متوسط الزمن</th>
+                <th class="num">الوسيط</th>
+                <th class="num">نسبة الالتزام</th>
+            </tr></thead>
+            <tbody>
+                ${rows.map(r => `
+                    <tr>
+                        <td><span class="stage-icon">${r.icon}</span> ${r.stage}</td>
+                        <td><strong>${r.staffLabel}</strong></td>
+                        <td class="num">${r.target} د</td>
+                        <td class="num">${r.totalSamples.toLocaleString()}</td>
+                        <td class="num bad">${r.totalDelayed.toLocaleString()}</td>
+                        <td class="num ${clrTime(r.overallAvg, r.target)}">${fmtMin(r.overallAvg)}</td>
+                        <td class="num">${fmtMin(r.staffList.length > 0 ? medianOf(r.staffList.flatMap(s => Array(s.totalSamples).fill(s.medianMinutes || s.avgMinutes))) : 0)}</td>
+                        <td class="num ${clrPct(r.overallCompliance)}">${fmtPct(r.overallCompliance)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>`;
+}
+
+function medianOf(arr) {
+    if (!arr || arr.length === 0) return 0;
+    const s = [...arr].sort((a, b) => a - b);
+    return s[Math.floor(s.length / 2)];
+}
+
+// ============= 3. HEATMAP V2 =============
+function renderHeatmapV2(hours) {
     const heatColor = (v) => {
         if (v == null) return '#1E293B';
         if (v >= 95) return '#10B981';
@@ -8048,9 +8586,47 @@ function renderHeatmapSection(hours) {
         return '#EF4444';
     };
 
+    const totalSamples = hours.reduce((s, h) => s + h.count, 0);
+    const onTime = hours.reduce((s, h) => s + (h.comp != null ? (h.count * h.comp / 100) : 0), 0);
+    const overallPct = totalSamples > 0 ? (onTime / totalSamples) * 100 : 0;
+
+    // ساعة الذروة
+    const peakHour = hours.reduce((p, c) => c.count > p.count ? c : p, hours[0]);
+    // ساعة أسوأ التزام
+    const withData = hours.filter(h => h.count > 5 && h.comp != null);
+    const worstHour = withData.length > 0 ? withData.reduce((p, c) => c.comp < p.comp ? c : p) : null;
+    const bestHour = withData.length > 0 ? withData.reduce((p, c) => c.comp > p.comp ? c : p) : null;
+
     return `
     <div class="comp-section">
-        <h4>🔥 الخريطة الحرارية — الالتزام بـ ٦٠ دقيقة لكل ساعة</h4>
+        <h4>🔥 الخريطة الحرارية للأداء على مدار اليوم</h4>
+        <p class="comp-section-desc">نسبة الالتزام بالـ ٦٠ دقيقة (من الطلب إلى ظهور النتيجة) في كل ساعة من اليوم</p>
+
+        <div class="heatmap-insights">
+            <div class="hm-insight">
+                <div class="hm-insight-label">⏰ ساعة الذروة</div>
+                <div class="hm-insight-value">${String(peakHour.hour).padStart(2, '0')}:00</div>
+                <div class="hm-insight-sub">${peakHour.count} عينة</div>
+            </div>
+            ${bestHour ? `
+            <div class="hm-insight">
+                <div class="hm-insight-label">🟢 أفضل أداء</div>
+                <div class="hm-insight-value" style="color:#10B981;">${String(bestHour.hour).padStart(2, '0')}:00</div>
+                <div class="hm-insight-sub">${bestHour.comp.toFixed(0)}% التزام</div>
+            </div>` : ''}
+            ${worstHour ? `
+            <div class="hm-insight">
+                <div class="hm-insight-label">🔴 أضعف أداء</div>
+                <div class="hm-insight-value" style="color:#EF4444;">${String(worstHour.hour).padStart(2, '0')}:00</div>
+                <div class="hm-insight-sub">${worstHour.comp.toFixed(0)}% التزام</div>
+            </div>` : ''}
+            <div class="hm-insight">
+                <div class="hm-insight-label">📊 الالتزام الإجمالي</div>
+                <div class="hm-insight-value" style="color:${overallPct >= 90 ? '#10B981' : overallPct >= 70 ? '#F59E0B' : '#EF4444'};">${overallPct.toFixed(1)}%</div>
+                <div class="hm-insight-sub">${totalSamples.toLocaleString()} عينة</div>
+            </div>
+        </div>
+
         <div style="overflow-x:auto;">
             <table class="comp-heat">
                 <thead>
@@ -8074,27 +8650,44 @@ function renderHeatmapSection(hours) {
                 </tbody>
             </table>
         </div>
-        <div style="margin-top:12px; display:flex; gap:18px; flex-wrap:wrap; font-size:11.5px; color:#94A3B8;">
-            <span><span style="display:inline-block; width:12px; height:12px; background:#10B981; border-radius:2px; vertical-align:middle;"></span> ≥٩٥٪</span>
-            <span><span style="display:inline-block; width:12px; height:12px; background:#F59E0B; border-radius:2px; vertical-align:middle;"></span> ٨٥–٩٤٪</span>
-            <span><span style="display:inline-block; width:12px; height:12px; background:#EF4444; border-radius:2px; vertical-align:middle;"></span> &lt;٨٥٪</span>
-            <span><span style="display:inline-block; width:12px; height:12px; background:#1E293B; border:1px dashed #334155; border-radius:2px; vertical-align:middle;"></span> لا عينات</span>
+        <div class="heatmap-legend">
+            <span><span class="lg-dot" style="background:#10B981;"></span> الالتزام ≥٩٥٪</span>
+            <span><span class="lg-dot" style="background:#F59E0B;"></span> الالتزام ٨٥–٩٤٪</span>
+            <span><span class="lg-dot" style="background:#EF4444;"></span> الالتزام &lt;٨٥٪</span>
+            <span><span class="lg-dot lg-empty"></span> لا توجد عينات</span>
         </div>
     </div>`;
 }
 
-function renderPromiseSection(R) {
-    const avgClr = (v) => v <= 10 ? 'ok' : v <= 15 ? 'warn' : 'bad';
+// ============= 4. PROMISE (EXECUTIVE PROMISE) - DETAILED =============
+function renderPromiseDetailed(R) {
     const rankClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const top = [...R.doctors].sort((a, b) => b.totalTests - a.totalTests).slice(0, 10);
+    const avgClr = (v) => v <= 10 ? 'ok' : v <= 15 ? 'warn' : 'bad';
+
+    const topByTotal = [...R.doctors].sort((a, b) => b.totalTests - a.totalTests).slice(0, 10);
+    const eligibleAvg = R.doctors.filter(d => d.patientCount >= 3);
+    const topByAvg = eligibleAvg.sort((a, b) => b.avgTestsPerPatient - a.avgTestsPerPatient).slice(0, 10);
 
     return `
-    <div class="comp-section">
-        <h4>🎯 الوعد التنفيذي — الأطباء الأكثر طلباً</h4>
+    <div class="comp-section stage-section" style="--stage-color: #8B5CF6;">
+        <div class="stage-header">
+            <div class="stage-icon-big">🎯</div>
+            <div class="stage-title-block">
+                <h4>الوعد التنفيذي — أكثر الأطباء طلباً للاختبارات</h4>
+                <p class="stage-sub">المستهدف: متوسط ≤ ١٠ اختبارات لكل مريض</p>
+            </div>
+        </div>
+
         <div class="comp-kpi-row">
             <div class="comp-kpi">
                 <div class="l">إجمالي الأطباء</div>
                 <div class="v">${R.totalDoctors}</div>
+                <div class="sub">طبيب طلب اختبارات</div>
+            </div>
+            <div class="comp-kpi">
+                <div class="l">إجمالي الاختبارات</div>
+                <div class="v">${R.totalErTests.toLocaleString()}</div>
+                <div class="sub">${R.totalErPatients} مريض</div>
             </div>
             <div class="comp-kpi ${R.overallAvg <= 10 ? 'good' : R.overallAvg <= 15 ? 'warn' : 'bad'}">
                 <div class="l">المتوسط العام</div>
@@ -8102,54 +8695,96 @@ function renderPromiseSection(R) {
                 <div class="sub">اختبار/مريض</div>
             </div>
             <div class="comp-kpi bad">
-                <div class="l">أطباء فوق الهدف</div>
+                <div class="l">أطباء فوق المستهدف</div>
                 <div class="v">${R.doctorsAboveTarget}</div>
                 <div class="sub">متوسطهم &gt; ١٠</div>
             </div>
-            <div class="comp-kpi">
-                <div class="l">إجمالي الاختبارات</div>
-                <div class="v">${R.totalErTests.toLocaleString()}</div>
-                <div class="sub">${R.totalErPatients} مريض</div>
-            </div>
         </div>
+
+        <div class="comp-sub-title">📊 أكثر ١٠ أطباء طلباً للاختبارات (بالإجمالي)</div>
         <table class="comp-table">
             <thead><tr>
-                <th class="num">#</th><th>الطبيب</th>
-                <th class="num">المرضى</th><th class="num">الاختبارات</th>
-                <th class="num">المتوسط/مريض</th><th class="num">مرضى &gt; ١٠</th>
+                <th class="num">#</th>
+                <th>الطبيب</th>
+                <th class="num">عدد مرضاه</th>
+                <th class="num">إجمالي الاختبارات</th>
+                <th class="num">المتوسط/مريض</th>
+                <th class="num">مرضى تجاوزوا ١٠</th>
+                <th class="num">أعلى لمريض واحد</th>
             </tr></thead>
             <tbody>
-                ${top.map((d, i) => `
+                ${topByTotal.map((d, i) => `
                     <tr>
                         <td class="num"><span class="rank ${rankClass(i)}">${i + 1}</span></td>
-                        <td>${escapeHtml(d.name)}</td>
+                        <td class="staff-cell">${escapeHtml(d.name)}</td>
                         <td class="num">${d.patientCount}</td>
-                        <td class="num">${d.totalTests}</td>
+                        <td class="num"><strong>${d.totalTests.toLocaleString()}</strong></td>
                         <td class="num ${avgClr(d.avgTestsPerPatient)}">${d.avgTestsPerPatient.toFixed(2)}</td>
                         <td class="num">${d.patientsExceeding}</td>
+                        <td class="num">${d.maxTestsOnePatient}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
+
+        ${topByAvg.length > 0 ? `
+        <div class="comp-sub-title" style="margin-top:24px;">⚠ أعلى ١٠ أطباء في متوسط الاختبارات/مريض (٣ مرضى فأكثر)</div>
+        <p class="comp-section-desc">يكشف الأطباء الذين قد يفرطون في طلب الاختبارات لكل مريض</p>
+        <table class="comp-table">
+            <thead><tr>
+                <th class="num">#</th>
+                <th>الطبيب</th>
+                <th class="num">المتوسط/مريض</th>
+                <th class="num">عدد المرضى</th>
+                <th class="num">إجمالي الاختبارات</th>
+                <th class="num">مرضى فوق ١٠</th>
+            </tr></thead>
+            <tbody>
+                ${topByAvg.map((d, i) => `
+                    <tr>
+                        <td class="num"><span class="rank ${rankClass(i)}">${i + 1}</span></td>
+                        <td class="staff-cell">${escapeHtml(d.name)}</td>
+                        <td class="num ${avgClr(d.avgTestsPerPatient)}"><strong>${d.avgTestsPerPatient.toFixed(2)}</strong></td>
+                        <td class="num">${d.patientCount}</td>
+                        <td class="num">${d.totalTests}</td>
+                        <td class="num">${d.patientsExceeding}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>` : ''}
     </div>`;
 }
 
-function renderStageSectionComp(R, title, icon) {
+// ============= 5. STAGE DETAILED (Order/Nursing/Lab) =============
+function renderStageDetailed(R, mode, title, subtitle, icon, color) {
     const cfg = R.cfg;
     const fmtMin = (m) => m.toFixed(1) + ' د';
-    const fmtPct = (p) => p.toFixed(0) + '%';
+    const fmtPct = (p) => p.toFixed(1) + '%';
     const rankClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
     const timeClr = (m) => m <= cfg.targetMin ? 'ok' : m <= cfg.targetMin * 1.5 ? 'warn' : 'bad';
     const pctClr = (p) => p >= 90 ? 'ok' : p >= 70 ? 'warn' : 'bad';
 
-    const byDelayed = [...R.staffList].sort((a, b) => b.delayedCount - a.delayedCount).slice(0, 10);
+    // ترتيب 1: أكثر تأخراً (بعدد العينات المتأخرة)
+    const topDelayed = [...R.staffList].sort((a, b) => b.delayedCount - a.delayedCount).slice(0, 10);
+    // ترتيب 2: أعلى متوسط زمن (≥ 5 عينات)
+    const eligibleTime = R.staffList.filter(s => s.totalSamples >= 5);
+    const topAvgTime = eligibleTime.sort((a, b) => b.avgMinutes - a.avgMinutes).slice(0, 10);
+    // ترتيب 3: أفضل أداء (أقل متوسط، ≥ 5 عينات)
+    const topBest = eligibleTime.slice().sort((a, b) => a.avgMinutes - b.avgMinutes).slice(0, 5);
 
     return `
-    <div class="comp-section">
-        <h4>${icon} ${title}</h4>
+    <div class="comp-section stage-section" style="--stage-color: ${color};">
+        <div class="stage-header">
+            <div class="stage-icon-big">${icon}</div>
+            <div class="stage-title-block">
+                <h4>${title}</h4>
+                <p class="stage-sub">${subtitle} · المستهدف: ${cfg.targetLabel}</p>
+            </div>
+        </div>
+
         <div class="comp-kpi-row">
             <div class="comp-kpi">
-                <div class="l">عدد الموظفين</div>
+                <div class="l">عدد ${cfg.staffLabel}</div>
                 <div class="v">${R.totalStaff}</div>
             </div>
             <div class="comp-kpi">
@@ -8165,27 +8800,97 @@ function renderStageSectionComp(R, title, icon) {
             <div class="comp-kpi ${R.overallCompliance >= 90 ? 'good' : R.overallCompliance >= 70 ? 'warn' : 'bad'}">
                 <div class="l">نسبة الالتزام</div>
                 <div class="v">${fmtPct(R.overallCompliance)}</div>
+                <div class="sub">${R.staffAboveTarget} فوق الهدف</div>
             </div>
         </div>
+
+        <div class="comp-sub-title">🔴 أكثر ١٠ ${cfg.staffLabel} تأخراً (بعدد العينات المتأخرة)</div>
         <table class="comp-table">
             <thead><tr>
-                <th class="num">#</th><th>${cfg.staffLabel}</th>
-                <th class="num">العينات</th><th class="num">المتأخرة</th>
-                <th class="num">الالتزام</th><th class="num">متوسط الزمن</th>
+                <th class="num">#</th>
+                <th>${cfg.staffLabel}</th>
+                <th class="num">إجمالي العينات</th>
+                <th class="num">المتأخرة</th>
+                <th class="num">نسبة الالتزام</th>
+                <th class="num">متوسط الزمن</th>
+                <th class="num">الوسيط</th>
+                <th class="num">أعلى زمن</th>
             </tr></thead>
             <tbody>
-                ${byDelayed.map((s, i) => `
+                ${topDelayed.map((s, i) => `
                     <tr>
                         <td class="num"><span class="rank ${rankClass(i)}">${i + 1}</span></td>
-                        <td>${escapeHtml(s.name)}</td>
+                        <td class="staff-cell">${escapeHtml(s.name)}</td>
                         <td class="num">${s.totalSamples}</td>
-                        <td class="num bad">${s.delayedCount}</td>
+                        <td class="num bad"><strong>${s.delayedCount}</strong></td>
                         <td class="num ${pctClr(s.compliancePct)}">${fmtPct(s.compliancePct)}</td>
                         <td class="num ${timeClr(s.avgMinutes)}">${fmtMin(s.avgMinutes)}</td>
+                        <td class="num">${fmtMin(s.medianMinutes)}</td>
+                        <td class="num bad">${fmtMin(s.maxMinutes)}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
+
+        ${topAvgTime.length > 0 ? `
+        <div class="comp-sub-title" style="margin-top:24px;">⏱️ أعلى ١٠ ${cfg.staffLabel} في متوسط الزمن (٥ عينات فأكثر)</div>
+        <table class="comp-table">
+            <thead><tr>
+                <th class="num">#</th>
+                <th>${cfg.staffLabel}</th>
+                <th class="num">متوسط الزمن</th>
+                <th class="num">الوسيط</th>
+                <th class="num">عينات</th>
+                <th class="num">المتأخرة</th>
+                <th class="num">الالتزام</th>
+            </tr></thead>
+            <tbody>
+                ${topAvgTime.map((s, i) => `
+                    <tr>
+                        <td class="num"><span class="rank ${rankClass(i)}">${i + 1}</span></td>
+                        <td class="staff-cell">${escapeHtml(s.name)}</td>
+                        <td class="num ${timeClr(s.avgMinutes)}"><strong>${fmtMin(s.avgMinutes)}</strong></td>
+                        <td class="num">${fmtMin(s.medianMinutes)}</td>
+                        <td class="num">${s.totalSamples}</td>
+                        <td class="num">${s.delayedCount}</td>
+                        <td class="num ${pctClr(s.compliancePct)}">${fmtPct(s.compliancePct)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>` : ''}
+
+        ${topBest.length > 0 ? `
+        <div class="comp-sub-title" style="margin-top:24px;">🏆 أفضل ٥ ${cfg.staffLabel} أداءً (٥ عينات فأكثر)</div>
+        <table class="comp-table">
+            <thead><tr>
+                <th class="num">#</th>
+                <th>${cfg.staffLabel}</th>
+                <th class="num">متوسط الزمن</th>
+                <th class="num">عينات</th>
+                <th class="num">المتأخرة</th>
+                <th class="num">الالتزام</th>
+            </tr></thead>
+            <tbody>
+                ${topBest.map((s, i) => `
+                    <tr>
+                        <td class="num"><span class="rank ${rankClass(i)}">${i + 1}</span></td>
+                        <td class="staff-cell">${escapeHtml(s.name)}</td>
+                        <td class="num ok"><strong>${fmtMin(s.avgMinutes)}</strong></td>
+                        <td class="num">${s.totalSamples}</td>
+                        <td class="num">${s.delayedCount}</td>
+                        <td class="num ok">${fmtPct(s.compliancePct)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>` : ''}
+    </div>`;
+}
+
+function renderFooter(R) {
+    return `
+    <div class="comp-footer">
+        <div>تجمع المدينة المنورة الصحي · إدارة الخدمات الصحية المساندة</div>
+        <div>تم إنشاء التقرير في ${new Date().toLocaleString('ar-SA')}</div>
     </div>`;
 }
 
@@ -8197,70 +8902,31 @@ function closeComp() {
 async function exportCompPdf() {
     const overlay = document.getElementById('loadingOverlay');
     overlay.classList.add('active');
-    document.getElementById('loadingText').textContent = 'جاري تصدير PDF...';
+    document.getElementById('loadingText').textContent = 'جاري تصدير PDF (قد يستغرق دقيقة)...';
     await new Promise(r => setTimeout(r, 50));
 
     try {
         const content = document.getElementById('compContent');
         const title = document.getElementById('compModalTitle').textContent;
 
-        // ننسخ المحتوى لـ container مؤقت مع خلفية بيضاء عشان PDF يكون قابل للقراءة
+        // ننسخ المحتوى لـ container مؤقت مع خلفية بيضاء
         const tempDiv = document.createElement('div');
-        tempDiv.style.cssText = 'position:fixed; left:-9999px; top:0; width:1200px; background:#FFFFFF; padding:30px; direction:rtl;';
+        tempDiv.style.cssText = 'position:fixed; left:-9999px; top:0; width:1200px; background:#FFFFFF; padding:20px; direction:rtl;';
         tempDiv.innerHTML = `
-            <div style="background:#FFFFFF; color:#1A2433; font-family: 'Cairo', 'Tajawal', sans-serif;">
-                <h1 style="color:#063A58; font-size:24px; font-weight:800; margin:0 0 20px; padding-bottom:14px; border-bottom:3px solid #063A58;">${title}</h1>
-                <style>
-                    .comp-section { background:#F7FAFC !important; border:1px solid #E2E8F0 !important; color:#1A2433 !important; padding:18px 22px; border-radius:10px; margin-bottom:18px; }
-                    .comp-section h4 { color:#063A58 !important; font-size:16px; font-weight:700; margin:0 0 14px; padding-bottom:10px; border-bottom:1px solid #E2E8F0 !important; }
-                    .comp-section h4::before { content:''; width:4px; height:16px; background:#8B5CF6; border-radius:2px; display:inline-block; margin-left:10px; vertical-align:middle; }
-                    .comp-hosp-header { background:#F0F4F8 !important; border:1px solid #D5DEE7 !important; border-right:4px solid #8B5CF6 !important; padding:20px 24px; border-radius:10px; margin-bottom:20px; }
-                    .comp-hosp-header h3 { color:#063A58 !important; font-size:22px; font-weight:800; margin:0 0 6px; }
-                    .comp-hosp-header .sub { color:#4A5A6B !important; font-size:13px; }
-                    .comp-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
-                    .comp-kpi { background:#FFFFFF !important; border:1px solid #E2E8F0 !important; border-radius:8px; padding:14px 16px; }
-                    .comp-kpi .l { font-size:11px; color:#6B7280 !important; margin-bottom:6px; font-weight:600; }
-                    .comp-kpi .v { font-size:28px; font-weight:800; color:#1A2433 !important; line-height:1; }
-                    .comp-kpi .sub { font-size:11px; color:#6B7280 !important; margin-top:6px; }
-                    .comp-kpi.good .v { color:#047857 !important; }
-                    .comp-kpi.warn .v { color:#B45309 !important; }
-                    .comp-kpi.bad .v { color:#B91C1C !important; }
-                    .comp-table { width:100%; border-collapse:collapse; font-size:13px; }
-                    .comp-table thead th { background:#063A58 !important; color:#FFFFFF !important; font-size:12px; font-weight:700; padding:10px 12px; text-align:right; }
-                    .comp-table thead th.num { text-align:center; }
-                    .comp-table tbody tr:nth-child(even) { background:#F7FAFC !important; }
-                    .comp-table tbody td { padding:9px 12px; border-bottom:1px solid #E2E8F0 !important; color:#1A2433 !important; }
-                    .comp-table tbody td.num { text-align:center; font-weight:700; }
-                    .comp-table .rank { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; background:#334155; color:#FFFFFF; border-radius:50%; font-weight:700; font-size:12px; }
-                    .comp-table .rank.gold { background:#EAB308; color:#1F2937; }
-                    .comp-table .rank.silver { background:#CBD5E1; color:#1F2937; }
-                    .comp-table .rank.bronze { background:#B45309; color:#FFFFFF; }
-                    .comp-table .ok { color:#047857 !important; font-weight:700; }
-                    .comp-table .warn { color:#B45309 !important; font-weight:700; }
-                    .comp-table .bad { color:#B91C1C !important; font-weight:700; }
-                    .comp-heat { width:100%; border-collapse:separate; border-spacing:2px; table-layout:fixed; }
-                    .comp-heat th { background:transparent; color:#4A5A6B !important; font-size:11px; font-weight:700; padding:6px 0; text-align:center; }
-                    .comp-heat .hh-corner { background:#334155 !important; color:#FFFFFF !important; border-radius:6px; text-align:right; padding-right:12px; }
-                    .comp-heat .hh-name { background:#F7FAFC !important; color:#1A2433 !important; font-weight:600; text-align:right; padding:8px 12px; font-size:12px; border-radius:5px; border:1px solid #E2E8F0 !important; }
-                    .comp-heat .hh-cell { padding:3px 1px; text-align:center; border-radius:4px; line-height:1.1; height:42px; }
-                    .comp-heat .hh-cell.empty { border:1px dashed #CBD5E0 !important; background:#F7FAFC !important; }
-                    .comp-heat .hh-pct { font-weight:700; font-size:11.5px; line-height:1; }
-                    .comp-heat .hh-cnt { font-weight:400; font-size:9.5px; opacity:0.85; margin-top:2px; }
-                </style>
+            <div class="pdf-light-mode" style="background:#FFFFFF; color:#1A2433; font-family: 'Cairo', 'Tajawal', sans-serif;">
                 ${content.innerHTML}
             </div>
         `;
         document.body.appendChild(tempDiv);
 
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 300));
 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
         const pageW = pdf.internal.pageSize.getWidth();
         const pageH = pdf.internal.pageSize.getHeight();
 
-        // التقاط الـ container ككامل
         const canvas = await html2canvas(tempDiv, {
             scale: 1.5,
             backgroundColor: '#FFFFFF',
@@ -8274,8 +8940,7 @@ async function exportCompPdf() {
         const imgH = (canvas.height * imgW) / canvas.width;
 
         // تقسيم على عدة صفحات
-        let position = 0;
-        const pageHeightCanvas = (pageH * canvas.width) / pageW; // ارتفاع صفحة بمقياس canvas
+        const pageHeightCanvas = (pageH * canvas.width) / pageW;
         const totalPages = Math.ceil(canvas.height / pageHeightCanvas);
 
         for (let i = 0; i < totalPages; i++) {
@@ -8312,6 +8977,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCompExportPdf = document.getElementById('btnCompExportPdf');
     if (btnCompExportPdf) btnCompExportPdf.addEventListener('click', exportCompPdf);
 });
+
 
 
 async function analyzeDoctors() {
